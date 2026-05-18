@@ -1,5 +1,5 @@
-import { ConditionsScreen } from "@/components/landing/ConditionsScreen";
+import { ConditionsSelectScreen } from "@/components/landing/ConditionsSelectScreen";
 
 export default function ConditionsPage() {
-  return <ConditionsScreen />;
+  return <ConditionsSelectScreen />;
 }

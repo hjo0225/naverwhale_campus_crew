@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/store/gameStore";
 import { formatScore, deriveEndReason, describeEndReason } from "@/lib/game/rules";
 import { CHAR_IMAGES } from "@/lib/game/data";
+import { playBgm, stopBgm } from "@/lib/audio/sounds";
 import { cn } from "@/lib/utils";
 
 interface Headline {
@@ -32,6 +34,17 @@ export function FinalResultScreen() {
   const summary = useGameStore((s) => s.summary);
   const reset = useGameStore((s) => s.reset);
   const startGame = useGameStore((s) => s.startGame);
+
+  const place = summary?.place ?? null;
+
+  // 결과 BGM — 1등이면 승리 음악, 그 외엔 위로 음악. 언마운트 시 정지.
+  useEffect(() => {
+    if (place == null) return;
+    playBgm(place === 1 ? "resultWin" : "resultOther");
+    return () => {
+      stopBgm();
+    };
+  }, [place]);
 
   if (!state || !summary) return null;
   const { title, prizeText } = headlineFor(summary.place, summary.totalPlayers);

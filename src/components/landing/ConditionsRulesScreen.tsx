@@ -13,17 +13,16 @@ import { FullPageSlider } from "@/components/ui/FullPageSlider";
 
 function CompactRule01() {
   return (
-    <div className="text-center max-w-[560px] mx-auto px-4">
+    <div className="text-center max-w-140 mx-auto px-4">
       <span className="eyebrow mb-3">RULE 01 · 카드 종류</span>
       <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-2 mb-3">
         카드는 6종류
       </h2>
-      <p className="text-sm sm:text-base text-(--color-text-secondary) mb-6">
-        1~5 숫자 카드와 캐릭6(라마) 카드로 구성되어 있습니다.{" "}
-        <p>
-          마지막에 카드를 손에 들고 있으면{" "}
-          <strong className="text-(--color-text)">그 점수만큼 깎입니다</strong>.
-        </p>
+      <p className="text-sm sm:text-base text-text-secondary mb-6">
+        1~5 숫자 카드와 캐릭6(라마) 카드로 구성되어 있습니다.
+        <br />
+        마지막에 카드를 손에 들고 있으면{" "}
+        <strong className="text-(--color-text)">그 점수만큼 깎입니다</strong>.
       </p>
       <div className="flex flex-wrap gap-2 justify-center mb-5">
         {CARD_TYPES.map((c) => (
@@ -32,19 +31,19 @@ function CompactRule01() {
             className="flex flex-col items-center gap-1.5"
           >
             <Card card={c} size="mini" />
-            <span className="text-xs font-bold text-(--color-text-secondary)">
+            <span className="text-xs font-bold text-text-secondary">
               -{c.points}점
             </span>
           </div>
         ))}
         <div className="flex flex-col items-center gap-1.5">
           <Card card={LLAMA_CARD} size="mini" />
-          <span className="text-xs font-bold text-(--color-llama-text)">
+          <span className="text-xs font-bold text-llama-text">
             -{LLAMA_CARD.points}점
           </span>
         </div>
       </div>
-      <p className="text-sm text-(--color-text-secondary)">
+      <p className="text-sm text-text-secondary">
         캐릭6(라마)는 <strong>-8점 폭탄</strong>! 빨리 던지는 게 좋아요
       </p>
     </div>
@@ -53,12 +52,12 @@ function CompactRule01() {
 
 function CompactRule02() {
   return (
-    <div className="text-center max-w-[560px] mx-auto px-4">
+    <div className="text-center max-w-140 mx-auto px-4">
       <span className="eyebrow mb-3">RULE 02 · 매칭 규칙</span>
       <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-2 mb-3">
         같은 숫자 또는 +1만
       </h2>
-      <p className="text-sm sm:text-base text-(--color-text-secondary) mb-6">
+      <p className="text-sm sm:text-base text-text-secondary mb-6">
         바닥에 놓인 카드와{" "}
         <strong className="text-(--color-text)">
           같은 숫자나 한 칸 위 숫자만
@@ -68,12 +67,12 @@ function CompactRule02() {
 
       <div className="flex flex-col items-center justify-center gap-3">
         <div className="flex flex-col items-center">
-          <div className="text-xs font-bold text-(--color-text-muted) mb-1.5">
+          <div className="text-xs font-bold text-text-muted mb-1.5">
             바닥에 캐릭3이 있다면
           </div>
           <Card card={CARD_TYPES[2]!} size="mini" />
         </div>
-        <div className="text-2xl text-(--color-text-muted) font-bold leading-none">
+        <div className="text-2xl text-text-muted font-bold leading-none">
           ↓
         </div>
         <div className="grid gap-2">
@@ -95,7 +94,7 @@ function CompactRule02() {
         </div>
       </div>
 
-      <p className="text-sm text-(--color-text-secondary) mt-5">
+      <p className="text-sm text-text-secondary mt-5">
         <strong>5 위에는 캐릭6(라마)</strong>, <strong>캐릭6 위에는 1</strong>만
         가능
       </p>
@@ -140,20 +139,20 @@ const RULE3_ACTIONS: readonly Rule3Action[] = [
 
 function CompactRule03Sub({ a }: { a: Rule3Action }) {
   return (
-    <div className="text-center max-w-[440px] mx-auto px-4">
+    <div className="text-center max-w-110 mx-auto px-4">
       <span className="eyebrow mb-2">RULE 03 · 차례 행동</span>
       <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight mt-2 mb-2">
         STEP {a.n} · {a.title}
       </h2>
-      <p className="text-sm sm:text-base text-(--color-text-secondary) mb-5">
+      <p className="text-sm sm:text-base text-text-secondary mb-5">
         {a.desc}
       </p>
-      <div className="flex items-center justify-center min-h-[140px] mb-4">
+      <div className="flex items-center justify-center min-h-35 mb-4">
         {a.visual}
       </div>
       {a.exception && (
-        <div className="surface-card muted inline-flex items-start gap-2 text-left text-xs text-(--color-text-secondary) px-3 py-2 max-w-[360px] mx-auto">
-          <span className="text-[10px] font-bold tracking-[0.12em] text-(--color-brand) shrink-0 mt-0.5">
+        <div className="surface-card muted inline-flex items-start gap-2 text-left text-xs text-text-secondary px-3 py-2 max-w-90 mx-auto">
+          <span className="text-[10px] font-bold tracking-[0.12em] text-brand shrink-0 mt-0.5">
             예외
           </span>
           <span className="whitespace-pre-line">
@@ -167,17 +166,16 @@ function CompactRule03Sub({ a }: { a: Rule3Action }) {
 
 function CompactRule04() {
   return (
-    <div className="text-center max-w-[560px] mx-auto px-4">
+    <div className="text-center max-w-140 mx-auto px-4">
       <span className="eyebrow mb-3">RULE 04 · 점수 계산</span>
       <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-2 mb-3">
         카드를 빨리 털어내세요
       </h2>
-      <p className="text-sm sm:text-base text-(--color-text-secondary) mb-6">
+      <p className="text-sm sm:text-base text-text-secondary mb-6">
         라운드 끝에 손에 남은 카드만큼{" "}
         <strong className="text-(--color-text)">점수가 깎입니다</strong>.
-        <p>
-          손에 패가 없다면 승리/다 낸 사람이 없다면 점수가 제일 높은 사람이 승리
-        </p>
+        <br />
+        손에 패가 없다면 승리/다 낸 사람이 없다면 점수가 제일 높은 사람이 승리
       </p>
       <div className="flex flex-wrap justify-center gap-2 mb-5">
         <Card card={CARD_TYPES[0]!} size="mini" />
@@ -185,11 +183,11 @@ function CompactRule04() {
         <Card card={CARD_TYPES[3]!} size="mini" />
         <Card card={LLAMA_CARD} size="mini" />
       </div>
-      <p className="text-sm text-(--color-text-secondary) mb-1">
+      <p className="text-sm text-text-secondary mb-1">
         예시 손패: 1 + 4 + (4 중복은 미카운트) + 8 ={" "}
         <strong className="text-(--color-text)">−13점 차감</strong>
       </p>
-      <p className="text-xs text-(--color-text-muted)">
+      <p className="text-xs text-text-muted">
         ※ 같은 카드를 여러 장 들고 있어도 1번만 차감
       </p>
     </div>
@@ -198,12 +196,12 @@ function CompactRule04() {
 
 function CompactRule05() {
   return (
-    <div className="text-center max-w-[440px] mx-auto px-4">
+    <div className="text-center max-w-110 mx-auto px-4">
       <span className="eyebrow mb-2">RULE 05 · 승리 조건</span>
       <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight mt-2 mb-2">
         네 명이 모여서 한 판
       </h2>
-      <p className="text-xs sm:text-sm text-(--color-text-secondary) mb-4">
+      <p className="text-xs sm:text-sm text-text-secondary mb-4">
         손님 + 웨일프렌즈 <strong className="text-(--color-text)">3명</strong>이
         한 테이블에서 한 판. 손에 남은 카드 점수가{" "}
         <strong className="text-(--color-text)">가장 낮은 사람이 1등!</strong>
@@ -211,35 +209,35 @@ function CompactRule05() {
 
       <div className="grid grid-cols-3 gap-2 mb-3">
         <div className="surface-card accent text-left px-2.5 py-2.5">
-          <div className="text-[10px] font-bold tracking-[0.1em] text-(--color-accent-deep) mb-1">
+          <div className="text-[10px] font-bold tracking-widest text-accent-deep mb-1">
             1등
           </div>
           <div className="font-extrabold text-sm mb-0.5">최고 상품</div>
-          <p className="text-[11px] leading-snug text-(--color-text-secondary)">
+          <p className="text-[11px] leading-snug text-text-secondary">
             키캡 + 인형 <strong className="text-(--color-text)">둘 다</strong>
           </p>
         </div>
         <div className="surface-card text-left px-2.5 py-2.5">
-          <div className="text-[10px] font-bold tracking-[0.1em] text-(--color-text-muted) mb-1">
+          <div className="text-[10px] font-bold tracking-widest text-text-muted mb-1">
             2 · 3등
           </div>
           <div className="font-extrabold text-sm mb-0.5">기념 상품</div>
-          <p className="text-[11px] leading-snug text-(--color-text-secondary)">
+          <p className="text-[11px] leading-snug text-text-secondary">
             키캡 / 인형 <strong className="text-(--color-text)">택 1</strong>
           </p>
         </div>
         <div className="surface-card muted text-left px-2.5 py-2.5">
-          <div className="text-[10px] font-bold tracking-[0.1em] text-(--color-text-muted) mb-1">
+          <div className="text-[10px] font-bold tracking-widest text-text-muted mb-1">
             4등
           </div>
           <div className="font-extrabold text-sm mb-0.5">꽝</div>
-          <p className="text-[11px] leading-snug text-(--color-text-secondary)">
+          <p className="text-[11px] leading-snug text-text-secondary">
             다음에 또 도전!
           </p>
         </div>
       </div>
 
-      <p className="text-xs text-(--color-text-muted)">
+      <p className="text-xs text-text-muted">
         부스에서 운영진 안내에 따라 게임을 시작하세요
       </p>
     </div>

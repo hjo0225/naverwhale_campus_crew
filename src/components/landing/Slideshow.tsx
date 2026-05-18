@@ -49,13 +49,28 @@ const FEATURE_SLIDES: readonly FeatureSlide[] = [
 
 function QRPanel() {
   return (
-    <div className="flex items-center justify-center">
-      <div className="w-[320px] h-[320px] bg-white rounded-3xl flex items-center justify-center overflow-hidden shadow-[0_16px_48px_rgba(0,22,60,0.3)]">
-        <img
-          src="/qr.png?v=1"
-          alt="부스 QR 코드"
-          className="w-full h-full object-contain p-4"
-        />
+    <div className="flex flex-row items-center justify-center gap-6 md:gap-10">
+      <div className="flex flex-col items-center gap-4 shrink-0">
+        <div className="w-[clamp(240px,20vw,400px)] aspect-square bg-white rounded-3xl flex items-center justify-center overflow-hidden shadow-[0_16px_48px_rgba(0,22,60,0.35)]">
+          <img
+            src="/qr.png?v=1"
+            alt="부스 QR 코드 (모바일)"
+            className="w-full h-full object-contain p-3"
+          />
+        </div>
+        <span className="text-xl font-bold tracking-[0.08em] text-white/90">
+          (모바일)
+        </span>
+      </div>
+      <div className="flex flex-col items-center gap-4 shrink-0">
+        <div className="w-[clamp(240px,20vw,400px)] aspect-square bg-white/10 border border-dashed border-white/40 rounded-3xl flex items-center justify-center text-center text-base text-[#C9D3DD] px-4">
+          PC용 QR 코드
+          <br />
+          (추후 삽입)
+        </div>
+        <span className="text-xl font-bold tracking-[0.08em] text-white/90">
+          (PC)
+        </span>
       </div>
     </div>
   );
@@ -63,10 +78,10 @@ function QRPanel() {
 
 function IntroSlide() {
   return (
-    <div className="w-full grid md:grid-cols-[1.4fr_1fr] gap-20 items-center">
-      <div className="text-left">
-        <span className="eyebrow mb-8">WHALE BOOTH</span>
-        <h1 className="display-h1 mt-6 mb-10 sm:mb-12">
+    <div className="w-full grid md:grid-cols-[minmax(0,1fr)_auto] gap-14 lg:gap-24 items-center">
+      <div className="text-left md:-ml-6 lg:-ml-16">
+        <span className="eyebrow mb-3">WHALE BOOTH</span>
+        <h1 className="display-h1 mt-2 mb-5 md:whitespace-nowrap leading-[1.18] tracking-[-0.012em]">
           네이버 웨일과 함께하는
           <br />
           <span className="text-(--color-brand-cyan)">캠퍼스 부스</span>
@@ -89,18 +104,18 @@ function FeatureSlideView({ f }: { f: FeatureSlide }) {
       <div className="text-left">
         <span className="eyebrow mb-6">{f.eyebrow}</span>
         <h1 className="display-h1 mt-6 mb-6">{f.title}</h1>
-        <p className="text-xl text-[#C9D3DD] leading-relaxed mb-6">{f.desc}</p>
+        <p className="text-2xl text-[#C9D3DD] leading-relaxed mb-6">{f.desc}</p>
         <div className="flex flex-wrap gap-2 mb-6">
           {f.tags.map((t) => (
             <span
               key={t}
-              className="text-sm px-3 py-1 border border-white/30 text-[#C9D3DD] rounded-full font-medium"
+              className="text-base px-3.5 py-1.5 border border-white/30 text-[#C9D3DD] rounded-full font-medium"
             >
               {t}
             </span>
           ))}
         </div>
-        <div className="pt-6 border-t border-white/20 text-lg text-[#C9D3DD] leading-relaxed">
+        <div className="pt-6 border-t border-white/20 text-xl text-[#C9D3DD] leading-relaxed">
           <strong className="text-(--color-brand-cyan)">이럴 때 좋아요</strong>
           <br />
           {f.scenario}
@@ -124,7 +139,7 @@ function GameStartSlide() {
         <br />
         <span className="text-(--color-brand-cyan)">한 판 어때?</span>
       </h1>
-      <p className="text-2xl text-[#C9D3DD] mb-16">함께하면 더 즐거운 부스 게임</p>
+      <p className="text-3xl text-[#C9D3DD] mb-16">함께하면 더 즐거운 부스 게임</p>
       <div className="flex justify-center gap-3 mb-16 flex-wrap">
         {allCards.map((c) => (
           <Card key={String(c.id)} card={c} size="large" />
@@ -150,6 +165,7 @@ function GameStartSlide() {
 
 export function Slideshow() {
   const reset = useGameStore((s) => s.reset);
+  const landingAutoMode = useGameStore((s) => s.landingAutoMode);
 
   // 홈 도착 시 게임 store 정리 — 결과 화면에서 "처음으로" 누른 뒤 stale 결과가 남지 않도록.
   useEffect(() => {
@@ -169,9 +185,9 @@ export function Slideshow() {
     <div className="text-white">
       <FullPageSlider
         pages={pages}
-        mode="auto"
+        mode={landingAutoMode ? "auto" : "wheel"}
         autoIntervalMs={SLIDE_DURATION_MS}
-        pattern={SLIDE_PATTERN}
+        pattern={landingAutoMode ? SLIDE_PATTERN : undefined}
         variant="brand"
       />
     </div>

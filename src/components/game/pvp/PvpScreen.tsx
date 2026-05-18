@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isFirebaseConfigured } from "@/lib/pvp/rtdb";
 import { usePvpStore } from "@/lib/store/pvpStore";
 import { deriveEndReason } from "@/lib/game/rules";
 import type { Player } from "@/lib/game/types";
 import type { AbortReason } from "@/lib/pvp/schema";
+import { playBgm, playSfx, stopBgm } from "@/lib/audio/sounds";
 import { EndSplash } from "@/components/game/EndSplash";
 import { PvpBoard } from "./PvpBoard";
 import { PvpLobby } from "./PvpLobby";
@@ -35,6 +36,67 @@ export default function PvpScreen() {
       return () => clearTimeout(t);
     }
     setSplashShown(false);
+  }, [phase]);
+
+  // PvP BGM — playing 동안 게임 BGM. finished 진입 시 정지(PvpResultScreen이 자체 BGM 트리거).
+  useEffect(() => {
+    if (phase === "playing") {
+      playBgm("game");
+    } else if (phase === "finished" || phase === "aborted") {
+      stopBgm();
+    }
+    return () => {
+      stopBgm();
+    };
+  }, [phase]);
+
+  // PvP SFX — 다른 플레이어가 카드 내기/뽑기/그만하기를 했을 때 트리거.
+  // RTDB로 동기화된 players[*].lastAction 의 변화를 감지. 각 (uid, actionType)별 1회.
+  const lastActionSigsRef = useRef<Map<string, string>>(new Map());
+  useEffect(() => {
+    const players = (room?.state?.players ?? []) as unknown as Player[];
+    if (players.length === 0 || phase !== "playing") return;
+    const seen = lastActionSigsRef.current;
+    for (const p of players) {
+      const action = p.lastAction;
+      if (!action) continue;
+      // 시그니처: type + (play 시 카드 uid 또는 round-idx)로 동일 액션 중복 트리거 방지.
+      const sig =
+        action.type === "play"
+          ? `play:${action.card.uid}`
+          : `${action.type}:${(p.hand?.length ?? 0)}`;
+      const prev = seen.get(p.name);
+      if (prev === sig) continue;
+      seen.set(p.name, sig);
+      // 첫 스냅샷(이전 값 없음)에서는 사운드 트리거 X — 방 입장 직후 폭주 방지.
+      if (prev === undefined) continue;
+      if (action.type === "play") {
+        playSfx(action.card.id === "L" ? "llama" : "cardPlay");
+      } else if (action.type === "draw") {
+        playSfx("cardDraw");
+      } else if (action.type === "quit") {
+        playSfx("quit");
+      }
+    }
+  }, [room?.state?.players, phase]);
+
+  // phase 전이 기반 SFX — playing 진입 시 셔플, finished 진입 시 라운드 종료.
+  const prevPhaseRef = useRef<typeof phase | null>(null);
+  useEffect(() => {
+    const prev = prevPhaseRef.current;
+    if (prev !== "playing" && phase === "playing") {
+      playSfx("shuffle");
+    } else if (prev === "playing" && phase === "finished") {
+      playSfx("roundEnd");
+    }
+    prevPhaseRef.current = phase;
+  }, [phase]);
+
+  // 방을 떠나면 시그니처 초기화 — 다음 방에서 잔존 이벤트 트리거되지 않도록.
+  useEffect(() => {
+    if (phase === "lobby" || phase === "waiting") {
+      lastActionSigsRef.current.clear();
+    }
   }, [phase]);
 
   // 백그라운드 throttle 회복 — 탭이 다시 활성화될 때 NPC/abort 스케줄 재진입.

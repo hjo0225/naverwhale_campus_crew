@@ -20,7 +20,9 @@ function IntroPage() {
           마우스 휠을 굴려서 단계별로 확인하세요.
         </p>
         <p className="text-base text-(--color-text-muted) max-w-[480px] mx-auto md:mx-0">
-          웨일 앱에서 추천인 코드를 등록하고, 인증 화면을 캡처해서 부스에 보여주시면 됩니다.
+          웨일 앱에서 추천인 코드를 등록하고,
+          <br />
+          인증 화면을 캡처해서 부스에 보여주시면 됩니다.
         </p>
       </div>
       <div className="aspect-[16/10] flex items-center justify-center p-4">
@@ -163,7 +165,9 @@ function Step3Page() {
   return (
     <div className="text-center max-w-[760px] mx-auto">
       <span className="eyebrow mb-2 sm:mb-5">STEP 03</span>
-      <h2 className="display-h2 mt-2 mb-3 sm:mt-4 sm:mb-6">현장 인증 후 게임 참여</h2>
+      <h2 className="display-h2 mt-2 mb-3 sm:mt-4 sm:mb-6">
+        현장 인증 후 게임 참여
+      </h2>
       <p className="text-sm sm:text-lg text-(--color-text-secondary) max-w-[540px] mx-auto mb-4 sm:mb-10">
         캡처한 인증 화면을 부스 운영진에게 보여주면 게임을 즐길 수 있어요.
       </p>
@@ -229,7 +233,7 @@ export function ConditionsScreen() {
     ],
     // copyCode는 store selector + 클로저라 매 렌더 새 ref. showToast는 안정적이므로 deps 비움.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    []
   );
 
   return <FullPageSlider pages={pages} mode="wheel" variant="light" />;

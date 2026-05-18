@@ -6,6 +6,7 @@ import { createDeck, shuffle } from "@/lib/game/deck";
 import { decideNpcMove } from "@/lib/game/npcAi";
 import { canPlay, calculateScore } from "@/lib/game/rules";
 import { assignPlaces, summarize } from "@/lib/game/scoring";
+import { playSfx } from "@/lib/audio/sounds";
 import type {
   Card,
   GameState,
@@ -19,6 +20,8 @@ export interface GameStore {
   toast: string | null;
   /** 게임 종료 시점에만 채워짐 — 손님의 누적 결과 (상품 결정용) */
   summary: PlayerSummary | null;
+  /** 랜딩 슬라이드쇼 자동 전환 여부. 기본=false(수동/휠). 운영진이 "1" 누르면 true. */
+  landingAutoMode: boolean;
 
   startGame: () => void;
   playerPlayCard: (handIdx: number) => void;
@@ -28,6 +31,7 @@ export interface GameStore {
   reset: () => void;
   showToast: (msg: string) => void;
   clearToast: () => void;
+  setLandingAutoMode: (v: boolean) => void;
 }
 
 function makePlayer(name: string, isPlayer: boolean, char: Player["char"]): Player {
@@ -159,6 +163,7 @@ export const useGameStore = create<GameStore>((set, get) => {
       },
       summary: summarize(nextHistory),
     });
+    playSfx("roundEnd");
   }
 
   function advanceTurn() {
@@ -204,6 +209,7 @@ export const useGameStore = create<GameStore>((set, get) => {
       target.lastAction = { type: "play", card: decision.card };
       const next: GameState = { ...s, players: newPlayers, top: decision.card };
       set({ state: next });
+      playSfx(decision.card.id === "L" ? "llama" : "cardPlay");
       if (target.hand.length === 0) {
         endRound();
         return;
@@ -218,6 +224,7 @@ export const useGameStore = create<GameStore>((set, get) => {
       if (drawn) target.hand.push(drawn);
       target.lastAction = { type: "draw" };
       set({ state: { ...s, players: newPlayers, deck: newDeck } });
+      playSfx("cardDraw");
       advanceTurn();
       return;
     }
@@ -225,6 +232,7 @@ export const useGameStore = create<GameStore>((set, get) => {
     target.quitted = true;
     target.lastAction = { type: "quit" };
     set({ state: { ...s, players: newPlayers } });
+    playSfx("quit");
     advanceTurn();
   }
 
@@ -232,6 +240,7 @@ export const useGameStore = create<GameStore>((set, get) => {
     state: null,
     toast: null,
     summary: null,
+    landingAutoMode: false,
 
     startGame: () => {
       clearNpcTimer();
@@ -252,6 +261,7 @@ export const useGameStore = create<GameStore>((set, get) => {
         roundHistory: [],
       };
       set({ state: dealNewRound(base), summary: null });
+      playSfx("shuffle");
     },
 
     playerPlayCard: (handIdx) => {
@@ -267,6 +277,7 @@ export const useGameStore = create<GameStore>((set, get) => {
       me.hand.splice(handIdx, 1);
       me.lastAction = { type: "play", card };
       set({ state: { ...s, players: newPlayers, top: card } });
+      playSfx(card.id === "L" ? "llama" : "cardPlay");
       if (me.hand.length === 0) {
         endRound();
         return;
@@ -292,6 +303,7 @@ export const useGameStore = create<GameStore>((set, get) => {
       if (drawn) me.hand.push(drawn);
       me.lastAction = { type: "draw" };
       set({ state: { ...s, players: newPlayers, deck: newDeck } });
+      playSfx("cardDraw");
       advanceTurn();
     },
 
@@ -304,6 +316,7 @@ export const useGameStore = create<GameStore>((set, get) => {
         i === 0 ? { ...p, quitted: true, lastAction: { type: "quit" as const } } : p
       );
       set({ state: { ...s, players: newPlayers } });
+      playSfx("quit");
       advanceTurn();
     },
 
@@ -320,6 +333,9 @@ export const useGameStore = create<GameStore>((set, get) => {
     },
     clearToast: () => {
       set({ toast: null });
+    },
+    setLandingAutoMode: (v) => {
+      set({ landingAutoMode: v });
     },
   };
 });

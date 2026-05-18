@@ -1,15 +1,33 @@
 "use client";
 
+import { useEffect } from "react";
 import { selectMySeat, usePvpStore } from "@/lib/store/pvpStore";
+import { playBgm, stopBgm } from "@/lib/audio/sounds";
 
 export function PvpResultScreen() {
   const room = usePvpStore((s) => s.room);
   const mySeat = usePvpStore(selectMySeat);
   const nextGame = usePvpStore((s) => s.nextGame);
   const state = room?.state;
-  if (!state || mySeat === null) return null;
-  const history = state.roundHistory ?? [];
+  const history = state?.roundHistory ?? [];
   const last = history[history.length - 1];
+
+  const myPlaceForBgm =
+    last && mySeat !== null
+      ? last.scores.find((s) => s.name === state?.players[mySeat]?.name)?.place ??
+        last.scores.length
+      : null;
+
+  // 결과 BGM — 1등이면 승리, 그 외엔 위로 음악.
+  useEffect(() => {
+    if (myPlaceForBgm == null) return;
+    playBgm(myPlaceForBgm === 1 ? "resultWin" : "resultOther");
+    return () => {
+      stopBgm();
+    };
+  }, [myPlaceForBgm]);
+
+  if (!state || mySeat === null) return null;
   if (!last) return null;
 
   const myRow = last.scores.find((s) => s.name === state.players[mySeat]?.name);

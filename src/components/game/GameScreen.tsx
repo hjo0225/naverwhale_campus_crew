@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/lib/store/gameStore";
 import { deriveEndReason } from "@/lib/game/rules";
+import { playBgm, stopBgm } from "@/lib/audio/sounds";
 import { GameBoard } from "./GameBoard";
 import { FinalResultScreen } from "./FinalResultScreen";
 import { EndSplash } from "./EndSplash";
@@ -23,6 +24,19 @@ export function GameScreen() {
       startGame();
     }
   }, [state, startGame]);
+
+  // BGM: playing → 게임 BGM 루프. finished → 정지(결과 화면이 자체 BGM 트리거).
+  // 화면 떠날 때 stop.
+  useEffect(() => {
+    if (state?.phase === "playing") {
+      playBgm("game");
+    } else if (state?.phase === "finished") {
+      stopBgm();
+    }
+    return () => {
+      stopBgm();
+    };
+  }, [state?.phase]);
 
   // 종료 phase 진입 시 1.8s splash 후 결과 화면 전이
   useEffect(() => {
