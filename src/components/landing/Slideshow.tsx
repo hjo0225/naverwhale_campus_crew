@@ -63,8 +63,8 @@ function QRPanel() {
 
 function IntroSlide() {
   return (
-    <div className="w-full grid md:grid-cols-[minmax(0,1fr)_auto] gap-14 lg:gap-24 items-center">
-      <div className="text-left md:-ml-6 lg:-ml-16">
+    <div className="w-full grid md:grid-cols-[minmax(0,1fr)_auto] gap-6 lg:gap-10 items-center">
+      <div className="text-left">
         <span className="eyebrow mb-3">WHALE BOOTH</span>
         <h1 className="display-h1 mt-2 mb-5 md:whitespace-nowrap leading-[1.18] tracking-[-0.012em]">
           네이버 웨일과 함께하는
