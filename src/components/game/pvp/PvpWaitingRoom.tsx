@@ -222,9 +222,7 @@ export function PvpWaitingRoom() {
                   onClick={() => void startGame()}
                   className="cta-btn cta-btn-primary cta-btn-large w-full mb-2"
                 >
-                  {canStart
-                    ? `게임 시작 — 사람 ${humanCount}명 + NPC ${npcCount}명`
-                    : "사람 2명 이상 모이면 시작 가능"}
+                  {canStart ? "게임 시작" : "사람 2명 이상 모이면 시작 가능"}
                 </button>
                 {!canStart && (
                   <p className="text-xs text-center" style={{ color: "var(--color-text-muted)" }}>
