@@ -58,19 +58,19 @@ const PC_STEPS: readonly PcStep[] = [
   {
     num: "STEP 02",
     title: "웨일 홈페이지 이동",
-    desc: "검색 결과 상단의 네이버 웨일 영역을 클릭해 공식 페이지로 이동합니다.",
+    desc: "검색 결과 상단의 네이버 웨일 영역을 클릭해\n공식 페이지로 이동합니다.",
     img: "/conditions/pc/step-2-home.png",
   },
   {
     num: "STEP 03",
     title: "웨일 다운로드",
-    desc: "메인의 [웨일 다운로드] 버튼을 눌러 설치 파일을 받은 뒤 실행하세요.",
+    desc: "메인의 [웨일 다운로드] 버튼을 눌러\n설치 파일을 받은 뒤 실행하세요.",
     img: "/conditions/pc/step-3-download.png",
   },
   {
     num: "STEP 04",
     title: "맞춤설정 메뉴",
-    desc: "설치 후 웨일을 실행하고, 우측 상단의 ⋮ (네이버 웨일 맞춤설정 및 제어) 버튼을 누르세요.",
+    desc: "설치 후 웨일을 실행하고, 우측 상단의\n⋮ (네이버 웨일 맞춤설정 및 제어) 버튼을 누르세요.",
     img: "/conditions/pc/step-4-menu.png",
   },
   {
@@ -86,7 +86,7 @@ function PcStepPage({ s }: { s: PcStep }) {
     <div className="text-center max-w-[880px] mx-auto flex flex-col items-center px-4">
       <span className="eyebrow mb-2">{s.num}</span>
       <h2 className="display-h2 mt-2 mb-3">{s.title}</h2>
-      <p className="text-base sm:text-lg text-text-secondary mb-5 max-w-[640px]">
+      <p className="text-base sm:text-lg text-text-secondary mb-5 max-w-[640px] whitespace-pre-line">
         {s.desc}
       </p>
       <div className="flex items-center justify-center w-full">
@@ -106,7 +106,9 @@ function Step6Page({ onCopy }: { onCopy: () => void }) {
       <span className="eyebrow mb-2">STEP 06</span>
       <h2 className="display-h2 mt-2 mb-3">추천인 코드 등록</h2>
       <p className="text-base sm:text-lg text-text-secondary mb-6 max-w-[640px] mx-auto">
-        설정 화면의 [추천인 코드] 항목에 아래 코드를 입력하고 [등록] 버튼을 눌러주세요.
+        설정 화면의 [추천인 코드] 항목에 코드를 입력하고
+        <br />
+        [등록] 버튼을 눌러주세요.
       </p>
 
       <div className="flex flex-col items-center gap-4 w-full max-w-[520px] mx-auto">

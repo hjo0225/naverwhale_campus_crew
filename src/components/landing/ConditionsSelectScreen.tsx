@@ -23,7 +23,7 @@ export function ConditionsSelectScreen() {
         <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
           <Link
             href="/conditions/mobile/"
-            className="surface-card brand flex flex-col items-center justify-center gap-3 px-6 py-10 transition-transform hover:-translate-y-1"
+            className="surface-card flex flex-col items-center justify-center gap-3 px-6 py-10 transition-transform hover:-translate-y-1"
           >
             <span className="text-5xl" aria-hidden>
               📱
