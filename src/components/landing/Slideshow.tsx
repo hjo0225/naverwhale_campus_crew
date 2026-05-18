@@ -49,28 +49,13 @@ const FEATURE_SLIDES: readonly FeatureSlide[] = [
 
 function QRPanel() {
   return (
-    <div className="flex flex-row items-center justify-center gap-6 md:gap-10">
-      <div className="flex flex-col items-center gap-4 shrink-0">
-        <div className="w-[clamp(240px,20vw,400px)] aspect-square bg-white rounded-3xl flex items-center justify-center overflow-hidden shadow-[0_16px_48px_rgba(0,22,60,0.35)]">
-          <img
-            src="/qr.png?v=1"
-            alt="부스 QR 코드 (모바일)"
-            className="w-full h-full object-contain p-3"
-          />
-        </div>
-        <span className="text-xl font-bold tracking-[0.08em] text-white/90">
-          (모바일)
-        </span>
-      </div>
-      <div className="flex flex-col items-center gap-4 shrink-0">
-        <div className="w-[clamp(240px,20vw,400px)] aspect-square bg-white/10 border border-dashed border-white/40 rounded-3xl flex items-center justify-center text-center text-base text-[#C9D3DD] px-4">
-          PC용 QR 코드
-          <br />
-          (추후 삽입)
-        </div>
-        <span className="text-xl font-bold tracking-[0.08em] text-white/90">
-          (PC)
-        </span>
+    <div className="flex items-center justify-center">
+      <div className="w-[clamp(240px,20vw,400px)] aspect-square bg-white rounded-3xl flex items-center justify-center overflow-hidden shadow-[0_16px_48px_rgba(0,22,60,0.35)]">
+        <img
+          src="/qr.png?v=1"
+          alt="부스 QR 코드"
+          className="w-full h-full object-contain p-3"
+        />
       </div>
     </div>
   );

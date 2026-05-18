@@ -5,6 +5,7 @@ import Link from "next/link";
 /**
  * 참가 안내 진입 화면 — 손님이 모바일 안내를 볼지 PC 안내를 볼지 고르는 분기 페이지.
  * 기존 `/conditions/`로 들어오던 동선이 이 화면을 거치도록 라우팅 재구성됨.
+ * 운영진은 홈으로 돌아갈 때 `1`/`H`/`Esc` 단축키를 사용한다.
  */
 export function ConditionsSelectScreen() {
   return (
@@ -49,15 +50,6 @@ export function ConditionsSelectScreen() {
             <span className="text-sm text-(--color-text-secondary)">
               데스크톱 웨일 브라우저로 참여
             </span>
-          </Link>
-        </div>
-
-        <div className="mt-10">
-          <Link
-            href="/"
-            className="text-sm text-(--color-text-muted) hover:text-(--color-text)"
-          >
-            ← 홈으로 돌아가기
           </Link>
         </div>
       </div>
