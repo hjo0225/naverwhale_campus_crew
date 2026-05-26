@@ -11,12 +11,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
+
+      # corepack 은 Node 에 기본 탑재. package.json 의 packageManager 필드
+      # ("pnpm@9.14.2") 를 자동으로 활성화 → 외부 액션 의존 제거.
+      - name: Enable corepack
+        run: corepack enable
+
+      # pnpm 스토어 캐시 — 별도 actions/cache 로 직접 관리.
+      - name: Locate pnpm store
+        id: pnpm-cache
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
