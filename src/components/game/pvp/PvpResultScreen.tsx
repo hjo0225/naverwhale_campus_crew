@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { selectMySeat, usePvpStore } from "@/lib/store/pvpStore";
 import { playBgm, stopBgm } from "@/lib/audio/sounds";
 
 export function PvpResultScreen() {
+  const router = useRouter();
   const room = usePvpStore((s) => s.room);
   const mySeat = usePvpStore(selectMySeat);
   const nextGame = usePvpStore((s) => s.nextGame);
@@ -75,10 +77,14 @@ export function PvpResultScreen() {
 
         <button
           type="button"
-          onClick={() => void nextGame()}
+          onClick={() => {
+            // 백그라운드로 PvP 방·구독 정리 시작 (await 안 함 — leave 가 unsub/timer 자체 정리).
+            void nextGame();
+            router.push("/");
+          }}
           className="w-full rounded-2xl bg-emerald-500 py-4 text-lg font-bold text-white shadow-lg transition hover:bg-emerald-600"
         >
-          로비로 이동
+          처음으로
         </button>
       </div>
     </div>

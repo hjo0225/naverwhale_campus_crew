@@ -182,7 +182,7 @@ export function MainMenu() {
 
         <nav className="menu-nav" aria-label="게임 메뉴">
           <Link href="/game/" className="menu-nav-btn primary">
-            싱글 플레이 ▶
+            튜토리얼 ▶
           </Link>
           <Link href="/game/pvp/" className="menu-nav-btn primary">
             PvP 대전 ▶
