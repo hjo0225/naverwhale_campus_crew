@@ -112,50 +112,69 @@ export function PvpBoard() {
             );
           })()}
           <div className="game-table">
-            {/* 가운데 — 덱 + 바닥 */}
+            {/* 덱 — painted 덱 슬롯 정렬 (중심 -2.5cm, -1cm) */}
             <div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center"
-              style={{ gap: "3.5rem" }}
+              className="absolute"
+              style={{
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%) translate(-2.5cm, -1cm)",
+              }}
             >
               <DeckStack count={state.deck.length} />
-              <div>
-                <div className="center-label">바닥</div>
-                <div style={{ width: 116, height: 168 }} className="relative">
-                  <AnimatePresence mode="popLayout">
-                    {state.top ? (
-                      <motion.div
-                        key={state.top.uid}
-                        className="absolute inset-0"
-                        initial={{
-                          x: throwOrigin.x,
-                          y: throwOrigin.y,
-                          scale: 0.7,
-                          opacity: 0,
-                          rotate: -8,
-                        }}
-                        animate={{
-                          x: [throwOrigin.x, 0, 0, 0],
-                          y: [throwOrigin.y, -50, -50, 0],
-                          scale: [0.7, 1.5, 1.5, 1],
-                          opacity: [0, 1, 1, 1],
-                          rotate: [-8, 2, 2, 0],
-                        }}
-                        exit={{ opacity: 0, scale: 0.85 }}
-                        transition={{
-                          duration: PLAY_STAGING_DURATION,
-                          times: [...PLAY_STAGING_TIMES],
-                          ease: EASE,
-                        }}
-                      >
-                        <Card card={state.top} size="large" />
-                      </motion.div>
-                    ) : (
-                      <div className="empty-slot">비었음</div>
-                    )}
-                  </AnimatePresence>
-                </div>
+            </div>
+
+            {/* 바닥 카드 — painted 카드 슬롯 정렬 (중심 +2.5cm, -1cm) */}
+            <div
+              className="absolute"
+              style={{
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%) translate(2.5cm, -1cm)",
+              }}
+            >
+              <div className="center-label">바닥</div>
+              <div style={{ width: 116, height: 168 }} className="relative floor-card-wrap">
+                <AnimatePresence mode="popLayout">
+                  {state.top ? (
+                    <motion.div
+                      key={state.top.uid}
+                      className="absolute inset-0"
+                      initial={{
+                        x: throwOrigin.x,
+                        y: throwOrigin.y,
+                        scale: 0.7,
+                        opacity: 0,
+                        rotate: -8,
+                      }}
+                      animate={{
+                        x: [throwOrigin.x, 0, 0, 0],
+                        y: [throwOrigin.y, -50, -50, 0],
+                        scale: [0.7, 1.5, 1.5, 1],
+                        opacity: [0, 1, 1, 1],
+                        rotate: [-8, 2, 2, 0],
+                      }}
+                      exit={{ opacity: 0, scale: 0.85 }}
+                      transition={{
+                        duration: PLAY_STAGING_DURATION,
+                        times: [...PLAY_STAGING_TIMES],
+                        ease: EASE,
+                      }}
+                    >
+                      <Card card={state.top} size="large" />
+                    </motion.div>
+                  ) : (
+                    <div className="empty-slot">비었음</div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
+
+            {/* 좌석 원형 아바타 + 이름 라벨 — 4 좌석. mySeat 기준 시각 위치 매핑. */}
+            <SeatAvatar player={topP} seat={order.top} pos="top" />
+            <SeatAvatar player={rightP} seat={order.right} pos="right" />
+            <SeatAvatar player={me} seat={order.bottom} pos="bottom" isMe />
+            <SeatAvatar player={leftP} seat={order.left} pos="left" />
 
             {/* 상단 / 좌우 — 다른 플레이어 (사람·NPC 모두 뒷면) */}
             <OpponentHand player={topP} pos="top" hidden />
@@ -172,10 +191,10 @@ export function PvpBoard() {
               onQuit={() => void quit()}
             />
 
-            {/* 하단 — 나 (앞면, 클릭 가능) */}
+            {/* 하단 — 나 (앞면, 클릭 가능). 가장자리쪽으로 1cm 내림 (4.5cm → 3.5cm) */}
             <div
               className="absolute left-1/2 -translate-x-1/2 flex justify-center items-center"
-              style={{ bottom: "1rem", minHeight: "180px" }}
+              style={{ bottom: "calc(1rem + 3.5cm)", minHeight: "180px" }}
             >
               <AnimatePresence>
                 {me.quitted ? (
@@ -325,7 +344,8 @@ function OpponentHand({
       <div
         className="absolute left-1/2 flex justify-center items-center"
         style={{
-          top: "1rem",
+          // 가장자리쪽으로 1cm 올림 (4.5cm → 3.5cm)
+          top: "calc(1rem + 3.5cm)",
           minHeight: "140px",
           transform: "translateX(-50%) rotate(180deg)",
         }}
@@ -410,7 +430,8 @@ function PvpActionBar({
     <>
       <button
         type="button"
-        className="cta-btn cta-btn-danger absolute bottom-4 left-4 z-20"
+        className="cta-btn cta-btn-danger absolute z-20"
+        style={{ bottom: "calc(1rem + 3.5cm)", left: "calc(1rem + 8.5cm)" }}
         disabled={quitDisabled}
         onClick={onQuit}
       >
@@ -418,12 +439,49 @@ function PvpActionBar({
       </button>
       <button
         type="button"
-        className="cta-btn cta-btn-primary absolute bottom-4 right-4 z-20"
+        className="cta-btn cta-btn-primary absolute z-20"
+        style={{ bottom: "calc(1rem + 3.5cm)", right: "calc(1rem + 8.5cm)" }}
         disabled={drawDisabled}
         onClick={onDraw}
       >
         {drawLabel}
       </button>
     </>
+  );
+}
+
+// 보드 안쪽 4 좌석 원형 아바타 + 이름 라벨. 사람=좌석 동물 이모지,
+// NPC=웨일프렌즈 캐릭터 이미지. 위치는 .seat-avatar.seat-{pos} CSS 가 잡는다.
+function SeatAvatar({
+  player,
+  seat,
+  pos,
+  isMe,
+}: {
+  player: RoomPlayer;
+  seat: number;
+  pos: VisualPos;
+  isMe?: boolean;
+}) {
+  return (
+    <div className={cn("seat-avatar", `seat-${pos}`)}>
+      <div className="seat-avatar-circle">
+        {player.isPlayer ? (
+          <span className="seat-emoji" aria-hidden>
+            {seatEmoji(seat)}
+          </span>
+        ) : player.char ? (
+          <img src={CHAR_IMAGES[player.char]} alt="" />
+        ) : (
+          <span className="seat-emoji" aria-hidden>
+            🤖
+          </span>
+        )}
+      </div>
+      <span className="seat-avatar-name">
+        {player.name}
+        {isMe && " (나)"}
+      </span>
+    </div>
   );
 }

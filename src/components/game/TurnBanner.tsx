@@ -49,24 +49,31 @@ export function TurnBanner({
     <AnimatePresence>
       {visible && (
         <div className="turn-banner-layer">
-          <motion.div
-            // key=title — 같은 visible 상태에서 타이틀이 바뀌면 old exit + new enter
-            // (cross-fade 처럼 부드러운 교체)
-            key={title}
-            className={`turn-banner${isMine ? " is-mine" : ""}`}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.85, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <img
-              src="/turn-banner-whale.png"
-              alt=""
-              aria-hidden
-              className="turn-banner-char"
-            />
-            <span className="turn-banner-text">{title}</span>
-          </motion.div>
+          {isMine ? (
+            // 자기 차례 — 텍스트만 (배경·캐릭터 X, 강한 text-shadow 로 가독)
+            <motion.div
+              key={title}
+              className="turn-banner is-mine"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <span className="turn-banner-text">{title}</span>
+            </motion.div>
+          ) : (
+            // 다른 플레이어 차례 — 튜토리얼 NPC 힌트와 동일한 작은 검정 알약
+            <motion.div
+              key={title}
+              className="tutorial-npc-hint"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+            >
+              {title}
+            </motion.div>
+          )}
         </div>
       )}
     </AnimatePresence>

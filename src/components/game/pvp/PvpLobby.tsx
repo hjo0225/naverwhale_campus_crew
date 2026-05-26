@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   NICKNAME_MAX,
@@ -148,13 +149,24 @@ export function PvpLobby() {
     >
       {/* 헤더 */}
       <header className="flex items-center justify-between px-8 py-4 flex-shrink-0" style={glassHeader}>
-        <div>
-          <span className="block text-[11px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.55)" }}>
-            카드게임
-          </span>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white leading-tight">
-            PvP 대전 모드
-          </h1>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm font-bold rounded-lg px-3 py-2 transition hover:bg-white/20"
+            style={{ background: "rgba(255,255,255,0.12)", color: "white", border: "1px solid rgba(255,255,255,0.25)" }}
+            aria-label="홈으로"
+          >
+            <span aria-hidden>←</span>
+            <span>홈으로</span>
+          </Link>
+          <div>
+            <span className="block text-[11px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.55)" }}>
+              카드게임
+            </span>
+            <h1 className="text-2xl font-extrabold tracking-tight text-white leading-tight">
+              PvP 대전 모드
+            </h1>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">

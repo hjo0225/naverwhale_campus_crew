@@ -140,55 +140,101 @@ export function GameBoard() {
           })()}
           <TutorialOverlay />
           <div className="game-table">
-            {/* 가운데 — 덱 + 바닥 */}
+            {/* 덱 — painted 덱 슬롯 정렬 (중심 -2.5cm, -1cm) */}
             <div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center"
-              style={{ gap: "3.5rem" }}
+              className="absolute"
+              style={{
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%) translate(-2.5cm, -1cm)",
+              }}
             >
               <DeckStack count={state.deck.length} />
-              <div>
-                <div className="center-label">바닥</div>
-                <div style={{ width: 116, height: 168 }} className="relative">
-                  <AnimatePresence mode="popLayout">
-                    {state.top ? (
-                      (() => {
-                        const origin = getThrowOrigin(state);
-                        return (
-                          <motion.div
-                            key={state.top.uid}
-                            className="absolute inset-0"
-                            initial={{
-                              x: origin.x,
-                              y: origin.y,
-                              scale: 0.7,
-                              opacity: 0,
-                              rotate: -8,
-                            }}
-                            animate={{
-                              x: [origin.x, 0, 0, 0],
-                              y: [origin.y, -50, -50, 0],
-                              scale: [0.7, 1.5, 1.5, 1],
-                              opacity: [0, 1, 1, 1],
-                              rotate: [-8, 2, 2, 0],
-                            }}
-                            exit={{ opacity: 0, scale: 0.85 }}
-                            transition={{
-                              duration: PLAY_STAGING_DURATION,
-                              times: [...PLAY_STAGING_TIMES],
-                              ease: EASE,
-                            }}
-                          >
-                            <Card card={state.top} size="large" />
-                          </motion.div>
-                        );
-                      })()
-                    ) : (
-                      <div className="empty-slot">비었음</div>
-                    )}
-                  </AnimatePresence>
-                </div>
+            </div>
+
+            {/* 바닥 카드 — painted 카드 슬롯 정렬 (중심 +2.5cm, -1cm) */}
+            <div
+              className="absolute"
+              style={{
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%) translate(2.5cm, -1cm)",
+              }}
+            >
+              <div className="center-label">바닥</div>
+              <div style={{ width: 116, height: 168 }} className="relative floor-card-wrap">
+                <AnimatePresence mode="popLayout">
+                  {state.top ? (
+                    (() => {
+                      const origin = getThrowOrigin(state);
+                      return (
+                        <motion.div
+                          key={state.top.uid}
+                          className="absolute inset-0"
+                          initial={{
+                            x: origin.x,
+                            y: origin.y,
+                            scale: 0.7,
+                            opacity: 0,
+                            rotate: -8,
+                          }}
+                          animate={{
+                            x: [origin.x, 0, 0, 0],
+                            y: [origin.y, -50, -50, 0],
+                            scale: [0.7, 1.5, 1.5, 1],
+                            opacity: [0, 1, 1, 1],
+                            rotate: [-8, 2, 2, 0],
+                          }}
+                          exit={{ opacity: 0, scale: 0.85 }}
+                          transition={{
+                            duration: PLAY_STAGING_DURATION,
+                            times: [...PLAY_STAGING_TIMES],
+                            ease: EASE,
+                          }}
+                        >
+                          <Card card={state.top} size="large" />
+                        </motion.div>
+                      );
+                    })()
+                  ) : (
+                    <div className="empty-slot">비었음</div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
+
+            {/* 좌석 원형 아바타 + 이름 라벨 — 4 좌석.
+                top=npcs[0]/달토, right=npcs[2]/웨일, bottom=손님, left=npcs[1]/페포. */}
+            {npcs[0]?.char && (
+              <div className="seat-avatar seat-top">
+                <div className="seat-avatar-circle">
+                  <img src={CHAR_IMAGES[npcs[0].char]} alt="" />
+                </div>
+                <span className="seat-avatar-name">{npcs[0].name}</span>
+              </div>
+            )}
+            {npcs[2]?.char && (
+              <div className="seat-avatar seat-right">
+                <div className="seat-avatar-circle">
+                  <img src={CHAR_IMAGES[npcs[2].char]} alt="" />
+                </div>
+                <span className="seat-avatar-name">{npcs[2].name}</span>
+              </div>
+            )}
+            <div className="seat-avatar seat-bottom">
+              <div className="seat-avatar-circle">
+                <span className="seat-emoji" aria-hidden>🙂</span>
+              </div>
+              <span className="seat-avatar-name">손님</span>
+            </div>
+            {npcs[1]?.char && (
+              <div className="seat-avatar seat-left">
+                <div className="seat-avatar-circle">
+                  <img src={CHAR_IMAGES[npcs[1].char]} alt="" />
+                </div>
+                <span className="seat-avatar-name">{npcs[1].name}</span>
+              </div>
+            )}
 
             {/* NPC 핸드 — 정사각형 탁자 상/좌/우 변 안쪽 */}
             {npcs[0] && (
@@ -214,10 +260,10 @@ export function GameBoard() {
               tutHighlightQuit={tutAllowQuit}
             />
 
-            {/* 손님 핸드 — 테두리 가까이. 그만하기 시 카드 페이드 + ✋ 이모지로 대체 */}
+            {/* 손님 핸드 — 가장자리쪽으로 1cm 내림 (4.5cm → 3.5cm) */}
             <div
               className="absolute left-1/2 -translate-x-1/2 flex justify-center items-center"
-              style={{ bottom: "1rem", minHeight: "180px" }}
+              style={{ bottom: "calc(1rem + 3.5cm)", minHeight: "180px" }}
             >
               <AnimatePresence>
                 {player.quitted ? (
@@ -282,6 +328,7 @@ export function GameBoard() {
                           isTutTarget && "tutorial-target",
                         )}
                         style={{
+                          // 카드 spread 원래대로 (overlap)
                           marginLeft: idx === 0 ? 0 : "-2.4rem",
                           zIndex: idx,
                         }}
@@ -341,9 +388,10 @@ function ActionBar({
       <button
         type="button"
         className={cn(
-          "cta-btn cta-btn-danger absolute bottom-4 left-4 z-20",
+          "cta-btn cta-btn-danger absolute z-20",
           tutHighlightQuit && "tutorial-target",
         )}
+        style={{ bottom: "calc(1rem + 3.5cm)", left: "calc(1rem + 8.5cm)" }}
         disabled={quitDisabled}
         onClick={onQuit}
       >
@@ -352,9 +400,10 @@ function ActionBar({
       <button
         type="button"
         className={cn(
-          "cta-btn cta-btn-primary absolute bottom-4 right-4 z-20",
+          "cta-btn cta-btn-primary absolute z-20",
           tutHighlightDraw && "tutorial-target",
         )}
+        style={{ bottom: "calc(1rem + 3.5cm)", right: "calc(1rem + 8.5cm)" }}
         disabled={drawDisabled}
         onClick={onDraw}
       >
@@ -477,6 +526,9 @@ function NpcHand({
     </motion.div>
   );
 
+  // 모든 NPC 손패 spread 동일 (원래 overlap)
+  const cardMargin = "-2.4rem";
+
   const renderCards = () =>
     hand.map((c, idx) => (
       <motion.div
@@ -504,7 +556,7 @@ function NpcHand({
         }}
         className="fan-wrap npc"
         style={{
-          marginLeft: idx === 0 ? 0 : "-2.4rem",
+          marginLeft: idx === 0 ? 0 : cardMargin,
           zIndex: idx,
         }}
       >
@@ -517,7 +569,8 @@ function NpcHand({
       <div
         className="absolute left-1/2 flex justify-center items-center"
         style={{
-          top: "1rem",
+          // 가장자리쪽으로 1cm 올림 (4.5cm → 3.5cm)
+          top: "calc(1rem + 3.5cm)",
           minHeight: "140px",
           transform: "translateX(-50%) rotate(180deg)",
         }}

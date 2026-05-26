@@ -15,17 +15,17 @@ function IntroPage() {
   return (
     <div className="grid md:grid-cols-[1.1fr_1fr] gap-12 items-center">
       <div className="text-center md:text-left">
-        <span className="eyebrow mb-5">참가 방법 · PC</span>
+        <span className="eyebrow mb-5">참가 방법 · 노트북(PC)</span>
         <h1 className="display-h1 mt-4 mb-6">
           6단계로 끝나는
           <br />
-          PC 부스 참여
+          노트북(PC) 부스 참여
         </h1>
         <p className="text-lg text-(--color-text-secondary) max-w-[480px] mx-auto md:mx-0 mb-2">
           마우스 휠을 굴려서 단계별로 확인하세요.
         </p>
         <p className="text-base text-(--color-text-muted) max-w-[480px] mx-auto md:mx-0">
-          네이버 웨일을 PC에 설치한 뒤, 추천인 코드를 등록하고
+          네이버 웨일을 노트북(PC)에 설치한 뒤, 추천인 코드를 등록하고
           <br />
           등록 화면을 부스 운영진에게 보여주시면 됩니다.
         </p>
@@ -126,7 +126,7 @@ function Step6Page({ onCopy }: { onCopy: () => void }) {
           </button>
         </div>
         <p className="text-sm text-text-muted">
-          복사 후 PC 웨일 설정 화면에 붙여넣기
+          복사 후 노트북(PC) 웨일 설정 화면에 붙여넣기
         </p>
       </div>
     </div>

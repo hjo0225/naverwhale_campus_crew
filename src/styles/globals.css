@@ -452,7 +452,29 @@
     display: flex;
     overflow: hidden;
     font-family: var(--font-sans);
-    background: var(--color-board-soft);
+    /* 실내 나무바닥 — 줄눈 없음. 순수 CSS 다층 합성:
+       1) 천장 광원: 위쪽 중앙에서 떨어지는 따뜻한 조명 (warm spotlight)
+       2) 룸 비네팅: 가장자리 어두워져 실내 코너 느낌
+       3) 미세 세로 그레인: 부드럽고 옅은 목재 결
+       4) 부드러운 브라운 베이스 (스무스) */
+    background:
+      radial-gradient(
+        ellipse 90% 65% at 50% 35%,
+        rgba(255, 225, 185, 0.18) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse 130% 95% at 50% 55%,
+        transparent 35%,
+        rgba(0, 0, 0, 0.55) 100%
+      ),
+      repeating-linear-gradient(
+        90deg,
+        rgba(255, 210, 165, 0.025) 0px,
+        rgba(60, 35, 18, 0.04) 4px,
+        rgba(255, 210, 165, 0.025) 8px
+      ),
+      linear-gradient(180deg, #7e4d2f 0%, #6b4226 60%, #543320 100%);
     zoom: 0.9;
   }
 
@@ -463,28 +485,23 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    /* 탁자 외부 — 부드러운 회색, 사이드바와 자연스럽게 이어짐 */
-    background: var(--color-board-soft);
-    /* 위/아래 여유 — 보드 외부 hand-chip 이 잘리지 않도록 */
-    padding: 4rem 1.25rem;
+    /* 게임 영역 자체는 투명 — game-shell 의 일러스트 배경이 보이게. */
+    background: transparent;
+    /* hand-chip 외부 노출은 좌석 아바타로 대체했으므로 큰 padding 불필요 */
+    padding: 0;
   }
 
-  /* ========== 정사각형 게임판 — 4면 모서리 중앙에 hand chip 배치 ========== */
+  /* ========== 게임판 — 투명 PNG 포커 테이블 (코너 alpha=0)이 game-shell 그라데이션 위에 얹힘 ========== */
   .game-table {
     position: relative;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 1024 / 572;
     height: 100%;
     width: auto;
     max-width: 100%;
-    border-radius: 28px;
-    background:
-      radial-gradient(140% 90% at 50% 50%, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.45) 100%),
-      linear-gradient(135deg, #cf9b66 0%, #a76e3e 45%, #7a4a25 100%);
+    /* 깨끗한 포커 테이블 일러스트 — painted 아바타 없음, 코너 투명 → 그라데이션 비침 */
+    background: url("/textures/overlay-12.png") center / contain no-repeat;
     color: #f8f0e0;
-    box-shadow:
-      0 0 0 6px rgba(0, 0, 0, 0.18),
-      0 24px 60px rgba(0, 0, 0, 0.35);
-    overflow: hidden;
+    overflow: visible;
   }
 
   /* 구버전 호환 — 일부 페이지가 .wood-table 클래스 직접 사용 시 동일하게 */
@@ -957,11 +974,23 @@
   /* 덱 더미 살짝 어긋난 그림자용 */
   .deck-stack {
     position: relative;
+    /* 덱 카드 1.1배 — CSS scale 은 motion transform 과 독립이라 충돌 없음 */
+    scale: 1.1;
   }
   .deck-stack .deck-shadow {
     position: absolute;
     inset: 0;
     pointer-events: none;
+  }
+  /* 바닥 카드 1.1배 — JSX 에서 wrapper 에 클래스 부여 */
+  .floor-card-wrap {
+    scale: 1.1;
+  }
+  /* 손패 카드 1.3배 — 본인 + NPC. fan-wrap 자체가 motion.div 이지만
+     CSS scale 은 transform 과 독립이라 motion 의 translate/rotate 와 조합되어 적용됨. */
+  .fan-wrap.player,
+  .fan-wrap.npc {
+    scale: 1.3;
   }
 
   /* 헤더 칩 (반투명) */
@@ -1100,13 +1129,13 @@
     justify-content: center;
   }
   .side-hand.left {
-    left: 12%;
+    left: calc(12% + 4cm); /* 페포 — 안쪽으로 4cm 이동 */
     top: 50%;
     transform: translate(-50%, -50%) rotate(90deg);
     transform-origin: center center;
   }
   .side-hand.right {
-    right: 12%;
+    right: calc(12% + 4cm); /* 웨일 — 안쪽으로 4cm 이동 */
     top: 50%;
     transform: translate(50%, -50%) rotate(-90deg);
     transform-origin: center center;
@@ -1354,12 +1383,10 @@
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
   }
 
-  /* 보드 (위에서 1/3, 좌우 중앙) 좌표를 잡는 앵커.
-     position:absolute 라 width/height 가 내용물 기준으로 줄어들고, translate(-50%,-50%)
-     로 그 내용물의 중심을 (top:33.33%, left:50%) 에 맞춘다. */
+  /* 보드 (위에서 1/3 - 3cm, 좌우 중앙) 좌표를 잡는 앵커. */
   .tutorial-anchor {
     position: absolute;
-    top: 33.333%;
+    top: calc(33.333% - 3cm);
     left: 50%;
     transform: translate(-50%, -50%);
   }
@@ -1408,12 +1435,15 @@
     margin-top: 0.25rem;
   }
   .tutorial-npc-hint {
-    /* .tutorial-anchor 안에 들어가므로 같은 (위 1/3, 좌우 중앙) 좌표를 자동으로 공유 */
-    font-size: 0.9rem;
+    /* .tutorial-anchor 안에 들어가므로 같은 (위 1/3, 좌우 중앙) 좌표를 자동으로 공유.
+       position:relative + top 으로 1.2cm 아래로 (framer-motion transform 과 충돌 X). */
+    position: relative;
+    top: 1.2cm;
+    font-size: 1.62rem; /* 1.08rem × 1.5 */
     font-weight: 800;
     color: white;
     background: rgba(0, 0, 0, 0.55);
-    padding: 0.4rem 0.95rem;
+    padding: 0.72rem 1.71rem; /* 0.48rem×1.5, 1.14rem×1.5 */
     border-radius: 9999px;
     backdrop-filter: blur(4px);
     pointer-events: none;
@@ -1456,44 +1486,35 @@
      CSS translate(-50%,-50%) 와 충돌하지 않는다 — 외곽 motion 은 opacity 만 다룬다. */
   .turn-banner-layer {
     position: absolute;
-    top: calc(33.333% - 1cm);
+    top: calc(33.333% - 2.5cm); /* 1cm 기존 + 1.5cm 추가 */
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 90;
     pointer-events: none;
   }
   /* 가로 알약형 — 좌측 캐릭터(2.png) + 우측 안내 문구 한 줄 */
+  /* 자기 차례 모달 — 얼음 프레임 이미지 배경 + 텍스트만 (캐릭터 X). */
   .turn-banner {
     display: inline-flex;
-    flex-direction: row;
     align-items: center;
-    gap: 20px;
-    padding: 10px 40px 10px 20px;
-    background: #ffffff;
-    border-radius: 50px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    justify-content: center;
+    width: clamp(320px, 32vw, 460px);
+    aspect-ratio: 1024 / 570;
+    padding: 0 12%;
+    background: url("/turn-banner-mine.png") center / 100% 100% no-repeat;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
   }
-  /* 자기 차례 강조 — 연두 윤곽선 + 살짝 연두 글로우.
-     border 대신 box-shadow 로 ring 을 그려 레이아웃 흔들림 0. */
   .turn-banner.is-mine {
-    box-shadow:
-      0 0 0 4px #7ED957,
-      0 0 16px rgba(126, 217, 87, 0.45),
-      0 8px 24px rgba(0, 0, 0, 0.15);
-  }
-  .turn-banner-char {
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-    flex-shrink: 0;
-    user-select: none;
-    pointer-events: none;
+    /* base 와 동일 */
   }
   .turn-banner-text {
-    font-size: 24px;
-    font-weight: 700;
-    color: #333333;
-    letter-spacing: -0.01em;
+    /* 라이트 블루 프레임 위 — 진한 브랜드 블루 */
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--color-action-deep);
+    letter-spacing: -0.02em;
     white-space: nowrap;
   }
 
@@ -1603,6 +1624,21 @@
   .fullpage--brand:has(.menu-header) {
     display: flex;
     flex-direction: column;
+    /* RACHIOS 랜딩 배경의 색감을 그라데이션으로 재현.
+       - 좌상단/우하단 대각 radial 글로우 = 스파클 분위기
+       - 진한 일렉트릭 블루 베이스 (왼위 어둡고 오른아래 밝게 = 자연스러운 깊이) */
+    background:
+      radial-gradient(
+        ellipse 70% 50% at 25% 25%,
+        rgba(160, 220, 255, 0.55) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse 80% 60% at 75% 80%,
+        rgba(120, 195, 255, 0.5) 0%,
+        transparent 60%
+      ),
+      linear-gradient(135deg, #0a3a96 0%, #1158c8 45%, #2a82e8 100%);
   }
   .menu-header {
     flex: 0 0 auto;
@@ -1611,36 +1647,26 @@
     justify-content: space-between;
     gap: 1.5rem;
     padding: 1.1rem clamp(1.2rem, 3vw, 2.5rem);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(6px);
+    /* 글래스모피즘 — 반투명 흰 + 강한 backdrop-blur + 채도 부스트. 하단 경계선 없음. */
+    background: rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(36px) saturate(160%);
+    -webkit-backdrop-filter: blur(36px) saturate(160%);
     z-index: 5;
   }
   .menu-logo {
     display: inline-flex;
     align-items: center;
-    gap: 0.7rem;
     color: white;
     text-decoration: none;
   }
-  .menu-logo-mark {
-    font-size: 2rem;
-    line-height: 1;
-    filter: drop-shadow(0 4px 8px rgba(0, 18, 50, 0.4));
-  }
-  .menu-logo-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.15;
-  }
-  .menu-logo-text strong {
-    font-size: 1.05rem;
-    font-weight: 900;
-    letter-spacing: 0.04em;
-  }
-  .menu-logo-text span {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.7);
+  /* 로고 이미지(RACHIOS) — 헤더 높이에 맞춰 적당히. 비율은 자동.
+     약간의 drop-shadow 로 옅은 그래피티 라인이 브랜드 그라데이션 위에서도 또렷하게. */
+  .menu-logo-img {
+    height: 52px;
+    width: auto;
+    display: block;
+    user-select: none;
+    filter: drop-shadow(0 4px 10px rgba(0, 18, 50, 0.45));
   }
   .menu-nav {
     display: inline-flex;
@@ -1928,9 +1954,11 @@
   }
 
   /* ========== 게임판 wrapper + HandChip 외부 레이어 ========== */
+  /* 일러스트 배경(1024×572)을 그대로 보여주기 위해 책상 비율도 같게.
+     painted 좌석/덱 위치와 우리 UI 를 % 좌표로 정확히 매칭. */
   .game-table-wrap {
     position: relative;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 1024 / 572;
     height: 100%;
     width: auto;
     max-width: 100%;
@@ -1943,6 +1971,62 @@
     aspect-ratio: auto;
     max-width: none;
   }
+
+  /* ===== 좌석 원형 아바타 + 이름 라벨 — 작은 원형 + 그 아래 이름 ===== */
+  .seat-avatar {
+    position: absolute;
+    width: 4.2%; /* 6% × 70% */
+    z-index: 6;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .seat-avatar-circle {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    background: white;
+    border: 2.5px solid #2a1810;
+    box-shadow:
+      0 3px 8px rgba(0, 0, 0, 0.35),
+      inset 0 0 0 1.5px rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .seat-avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .seat-avatar-circle .seat-emoji {
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+  .seat-avatar-name {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    text-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.75),
+      0 0 8px rgba(0, 0, 0, 0.4);
+  }
+  /* 오발 테이블 가장자리(rim) — 손패 카드와 겹치지 않도록 더 바깥쪽 */
+  .seat-top    { left: 50%; top: calc(4% + 1cm); }
+  .seat-right  { left: calc(96% - 1.1cm); top: 50%; }
+  .seat-bottom { left: 50%; top: calc(96% - 1cm); }
+  .seat-left   { left: calc(4% + 1.1cm); top: 50%; }
+
+  /* 좌석 아바타가 있을 땐 외부 hand-chip-layer 는 중복이라 숨김 */
+  .game-shell:has(.seat-avatar) .hand-chip-layer {
+    display: none;
+  }
+
   .hand-chip-layer {
     position: absolute;
     inset: 0;

@@ -28,13 +28,13 @@ export function ConditionsSelectScreen() {
           >
             {/* 조건 강조 — 카드 맨 위. 브랜드 컬러 좌측 바 (▎) + 연한 브랜드 배경 = PC 가 우선 선택지 */}
             <span className="self-stretch text-sm sm:text-base font-bold text-(--color-brand-deep) bg-(--color-brand-soft) border-l-4 border-(--color-brand) py-2.5 px-3.5 rounded-r-md text-left">
-              PC가 있는 경우
+              노트북(PC)가 있는 경우
             </span>
             <span className="text-5xl" aria-hidden>
               💻
             </span>
             <span className="text-xl sm:text-2xl font-extrabold">
-              PC 안내
+              노트북(PC) 안내
             </span>
           </Link>
 
@@ -44,7 +44,7 @@ export function ConditionsSelectScreen() {
           >
             {/* 조건 강조 — 카드 맨 위. 중성 회색 좌측 바 = 모바일은 PC 없을 때만 보는 fallback */}
             <span className="self-stretch text-sm sm:text-base font-bold text-(--color-text-secondary) bg-(--color-board-soft) border-l-4 border-(--color-text-muted) py-2.5 px-3.5 rounded-r-md text-left">
-              PC가 없는 경우
+              노트북(PC)가 없는 경우
             </span>
             <span className="text-5xl" aria-hidden>
               📱

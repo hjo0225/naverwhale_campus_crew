@@ -22,6 +22,7 @@ const FEATURES: readonly Feature[] = [
   { id: "dual-tab", label: "듀얼탭", ytId: "pd1WmEx6ttg" },
   { id: "gesture", label: "마우스 제스처", ytId: "BO7jBVuWbrQ" },
   { id: "sidebar", label: "사이드바", ytId: "7miScf_vR8E" },
+  { id: "multiplay", label: "멀티플레이", ytId: "QyHzHpSUQ1M" },
 ];
 
 function buildEmbedUrl(id: string, useNativeLoop: boolean): string {
@@ -224,14 +225,13 @@ export function MainMenu() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: EASE }}
       >
-        <Link href="/" className="menu-logo" aria-label="WHALE BOOTH 홈">
-          <span className="menu-logo-mark" aria-hidden>
-            🐳
-          </span>
-          <span className="menu-logo-text">
-            <strong>WHALE BOOTH</strong>
-            <span>웨일프렌즈 카드대결</span>
-          </span>
+        <Link href="/" className="menu-logo" aria-label="홈">
+          <img
+            src="/logo.png"
+            alt="RACHIOS"
+            className="menu-logo-img"
+            draggable={false}
+          />
         </Link>
 
         <nav className="menu-nav" aria-label="게임 메뉴">

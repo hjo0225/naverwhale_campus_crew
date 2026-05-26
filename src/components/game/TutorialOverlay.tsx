@@ -73,7 +73,7 @@ export function TutorialOverlay() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
             >
-              잠시만요 — NPC 차례 진행 중...
+              잠시만요.. NPC 차례 진행 중...
             </motion.div>
           )}
         </AnimatePresence>
