@@ -15,3 +15,11 @@ export const APP_DOWNLOAD = {
  */
 export const SLIDE_PATTERN = [0, 1, 5, 0, 2, 5, 0, 3, 5, 0, 4, 5] as const;
 export const SLIDE_DURATION_MS = 6000;
+
+/**
+ * 메인 메뉴 attract 영상 호스팅 (GCS 공개 버킷, 서울 리전).
+ * 영상 교체 시 gsutil 로 같은 키에 덮어쓰면 즉시 반영 (immutable 캐시지만
+ * 파일명 그대로 두면 CDN edge 만료까지 길게 유지 — 새 파일은 새 이름 권장).
+ */
+export const VIDEO_BASE_URL =
+  "https://storage.googleapis.com/naver-whale-campus-crew-videos";
