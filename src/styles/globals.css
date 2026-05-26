@@ -1687,6 +1687,13 @@
     transform: translateY(2px);
   }
 
+  /* 헤더 밑 본문 — 좌상단 버튼 + 중앙 영상 묶음. 남는 공간 전부 차지, 세로 column 으로 쌓음. */
+  .menu-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
   .menu-stage {
     flex: 1 1 auto;
     display: flex;
@@ -1695,8 +1702,61 @@
     padding: clamp(1rem, 3vh, 2.5rem) clamp(1rem, 3vw, 2.5rem);
     min-height: 0; /* flex 자식 영상이 부모를 넘치지 않도록 */
   }
-  .menu-video-frame {
+  /* 영상 + 버튼 한 그룹 — body 중앙에 배치되는 단위.
+     그룹 폭 = 영상 폭이고, 버튼은 그룹 내부 좌상단에 자연스럽게 붙음. */
+  .menu-video-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
     width: min(1280px, 92vw);
+    max-height: 100%;
+  }
+  /* 기능 선택 버튼 — 영상 바로 위 가로 행, 좌측 정렬. */
+  .menu-feature-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    flex-shrink: 0;
+  }
+  .menu-feature-btn {
+    padding: 0.65rem 1.15rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition:
+      background 0.15s ease,
+      color 0.15s ease,
+      transform 0.05s ease,
+      box-shadow 0.15s ease;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    white-space: nowrap;
+  }
+  .menu-feature-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .menu-feature-btn:active {
+    transform: scale(0.98);
+  }
+  .menu-feature-btn.is-active {
+    background: white;
+    color: var(--color-brand-deep);
+    border-color: white;
+    box-shadow: 0 6px 14px rgba(0, 18, 50, 0.32);
+  }
+  .menu-feature-btn:focus-visible {
+    outline: 3px solid rgba(255, 255, 255, 0.55);
+    outline-offset: 2px;
+  }
+
+  .menu-video-frame {
+    width: 100%; /* 그룹 폭(=min(1280, 92vw)) 을 그대로 차지 */
     aspect-ratio: 16 / 9;
     max-height: 100%;
     border-radius: 22px;
@@ -1707,6 +1767,18 @@
       0 18px 50px rgba(0, 18, 50, 0.55),
       0 0 0 1px rgba(255, 255, 255, 0.05) inset;
     position: relative;
+  }
+  /* 모바일 — 버튼 더 작게 + 폭 좁아지면 가로 스크롤 */
+  @media (max-width: 720px) {
+    .menu-feature-list {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+    .menu-feature-btn {
+      flex-shrink: 0;
+      font-size: 0.82rem;
+      padding: 0.5rem 0.9rem;
+    }
   }
   /* AnimatePresence 슬라이드 — 새 영상이 오른쪽에서 들어오고 기존이 왼쪽으로 빠짐.
      overflow:hidden 인 .menu-video-frame 안에서 두 슬라이드가 겹쳐 움직임. */
@@ -1721,6 +1793,40 @@
     height: 100%;
     border: 0;
     display: block;
+  }
+  /* 음소거 토글 — 영상 우하단 작은 원형 버튼. autoplay 정책상 초기는 mute,
+     운영진이 클릭하면 unMute + 볼륨 100%. 영상 슬라이드 위 z-index 우선. */
+  .menu-video-mute-toggle {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    z-index: 5;
+    width: 48px;
+    height: 48px;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+  .menu-video-mute-toggle:hover {
+    background: rgba(0, 0, 0, 0.78);
+  }
+  .menu-video-mute-toggle:active {
+    transform: scale(0.94);
+  }
+  .menu-video-mute-toggle:focus-visible {
+    outline: 3px solid rgba(255, 255, 255, 0.55);
+    outline-offset: 2px;
   }
   .menu-video-placeholder {
     width: 100%;

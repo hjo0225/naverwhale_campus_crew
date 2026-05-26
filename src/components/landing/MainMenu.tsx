@@ -9,18 +9,19 @@ import { useGameStore } from "@/lib/store/gameStore";
 // 라우팅은 그대로: 헤더 버튼이 기존 라우트로 이동한다.
 
 // ===== 영상 설정 =====
-// YouTube video ID 를 순서대로 넣으세요.
+// 각 기능별 영상. 왼쪽 버튼을 누르면 즉시 그 영상으로 슬라이드되고, 영상이 끝나면
+// 다음 기능으로 자동 사이클(attract). 마지막 → 처음 무한 반복.
 // - 1개:    그 영상이 YouTube 자체 루프로 무한 반복.
-// - 여러 개: 영상이 끝나면 오른쪽에서 다음 영상이 슬라이드되어 들어오고
-//           마지막 영상이 끝나면 처음으로 돌아와 끝없이 사이클.
 // - 비어 있음: "영상 준비 중" 자리표시.
-// 예: ["abc123XYZ_4", "def456ABC_8"]
-const YOUTUBE_VIDEO_IDS: readonly string[] = [
-  "MdBZmVCh80o", // 듀얼탭
-  "als8Xcz3Hro", // 퀵서치
-  "BO7jBVuWbrQ", // 마우스 제스처
-  "7miScf_vR8E", // 사이드바
-  "QyHzHpSUQ1M", // (신규) 멀티플레이
+interface Feature {
+  id: string;
+  label: string;
+  ytId: string;
+}
+const FEATURES: readonly Feature[] = [
+  { id: "dual-tab", label: "듀얼탭", ytId: "pd1WmEx6ttg" },
+  { id: "gesture", label: "마우스 제스처", ytId: "BO7jBVuWbrQ" },
+  { id: "sidebar", label: "사이드바", ytId: "7miScf_vR8E" },
 ];
 
 function buildEmbedUrl(id: string, useNativeLoop: boolean): string {
@@ -50,6 +51,10 @@ function buildEmbedUrl(id: string, useNativeLoop: boolean): string {
 // ===== YouTube IFrame API 최소 타입 =====
 interface YtPlayer {
   destroy(): void;
+  mute?: () => void;
+  unMute?: () => void;
+  /** 0~100 */
+  setVolume?: (v: number) => void;
 }
 interface YtNamespace {
   Player: new (
@@ -86,48 +91,84 @@ function loadYtApi(): Promise<void> {
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-// 영상 한 개를 띄우는 iframe + ENDED 후크.
-// onEnded 가 있으면(여러 개 모드) IFrame API 에 붙어 종료 감지.
+// 영상 한 개를 띄우는 iframe + IFrame API 부착.
+// - onEnded (여러 개 모드): ENDED 이벤트 시 호출 → 다음 영상으로 사이클
+// - muted: 부모 토글 상태. 변경 시 player.mute()/unMute()+setVolume(100).
+//   초기 attract 모드는 mute=1 (브라우저 autoplay 정책상 필수).
 function VideoFrame({
   id,
   useNativeLoop,
+  muted,
   onEnded,
 }: {
   id: string;
   useNativeLoop: boolean;
+  muted: boolean;
   onEnded?: () => void;
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
+  const playerRef = useRef<YtPlayer | null>(null);
+  // 콜백/상태 최신값을 effect 재실행 없이 참조하려는 ref 들.
+  const onEndedRef = useRef(onEnded);
+  onEndedRef.current = onEnded;
+  const mutedRef = useRef(muted);
+  mutedRef.current = muted;
 
+  // iframe (= id) 마운트마다 새 YT.Player 생성. 정리는 cleanup 에서.
   useEffect(() => {
-    if (!onEnded) return; // 싱글 모드: 네이티브 루프라 API 불필요
     const iframe = ref.current;
     if (!iframe) return;
 
-    let player: YtPlayer | null = null;
     let cancelled = false;
 
     void loadYtApi().then(() => {
       if (cancelled || !window.YT?.Player) return;
       const ENDED = window.YT.PlayerState.ENDED;
-      player = new window.YT.Player(iframe, {
+      const p = new window.YT.Player(iframe, {
         events: {
           onStateChange: (e) => {
-            if (e.data === ENDED) onEnded();
+            if (e.data === ENDED) onEndedRef.current?.();
           },
         },
       });
+      playerRef.current = p;
+      // 현재 muted 상태 즉시 적용 (다음 영상으로 슬라이드되어도 unmute 유지)
+      try {
+        if (mutedRef.current) p.mute?.();
+        else {
+          p.unMute?.();
+          p.setVolume?.(100);
+        }
+      } catch {
+        // 플레이어 준비 전이면 onReady 후 호출됨 — 무시
+      }
     });
 
     return () => {
       cancelled = true;
       try {
-        player?.destroy();
+        playerRef.current?.destroy();
       } catch {
         // 이미 파괴됐거나 API 미초기화 — 무시
       }
+      playerRef.current = null;
     };
-  }, [id, onEnded]);
+  }, [id]);
+
+  // muted prop 변경 → 기존 플레이어에 즉시 반영
+  useEffect(() => {
+    const p = playerRef.current;
+    if (!p) return;
+    try {
+      if (muted) p.mute?.();
+      else {
+        p.unMute?.();
+        p.setVolume?.(100);
+      }
+    } catch {
+      // 무시
+    }
+  }, [muted]);
 
   return (
     <iframe
@@ -150,14 +191,27 @@ export function MainMenu() {
     reset();
   }, [reset]);
 
-  // tick — 영상이 끝날 때마다 +1. mod 가 아니라 단조 증가라 같은 ID 가 다시 와도
-  // key 가 항상 달라 슬라이드 애니메이션이 발동한다.
+  // 현재 표시 중인 기능 인덱스. 사이클이 wrap 해도 key 가 달라야 슬라이드 트리거되므로
+  // tick 을 별도로 증가시킨다(단조 증가, 같은 인덱스 다시 와도 새 key).
+  const [currentIdx, setCurrentIdx] = useState(0);
   const [tick, setTick] = useState(0);
-  const total = YOUTUBE_VIDEO_IDS.length;
+  // 음소거 토글 — 초기 true (autoplay 정책상 필수). 운영진이 우하단 버튼으로 unmute.
+  const [muted, setMuted] = useState(true);
+  const total = FEATURES.length;
   const single = total === 1;
-  const currentId = total > 0 ? YOUTUBE_VIDEO_IDS[tick % total]! : null;
+  const current = total > 0 ? FEATURES[currentIdx % total]! : null;
+  const currentId = current?.ytId ?? null;
 
   const goNext = useCallback(() => {
+    setCurrentIdx((i) => (i + 1) % total);
+    setTick((t) => t + 1);
+  }, [total]);
+
+  const selectFeature = useCallback((idx: number) => {
+    setCurrentIdx((prev) => {
+      if (prev === idx) return prev; // 이미 활성이면 재트리거 없이 통과
+      return idx;
+    });
     setTick((t) => t + 1);
   }, []);
 
@@ -196,32 +250,71 @@ export function MainMenu() {
         </nav>
       </motion.header>
 
-      {/* ===== 가운데 — YouTube attract 영상 (여러 개면 끝없이 사이클) ===== */}
-      <div className="menu-stage">
-        <motion.div
-          className="menu-video-frame"
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.55, ease: EASE, delay: 0.1 }}
-        >
+      {/* ===== 헤더 밑 본문 — 영상 + 버튼 묶음 그룹을 body 정중앙 배치 ===== */}
+      <div className="menu-body">
+        <div className="menu-stage">
+          {/* 영상 + 버튼 한 그룹 (=같은 폭). body 정중앙. 버튼은 그룹 내부 좌상단. */}
+          <div className="menu-video-group">
+            {/* 기능 선택 버튼 — 영상 바로 위 좌측 정렬.
+                클릭 시 즉시 해당 영상으로 슬라이드. 자동 사이클 그대로. */}
+            {FEATURES.length > 1 && (
+              <nav className="menu-feature-list" aria-label="기능 영상 선택">
+                {FEATURES.map((f, i) => {
+                  const active = i === currentIdx;
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      className={`menu-feature-btn${active ? " is-active" : ""}`}
+                      onClick={() => selectFeature(i)}
+                      aria-pressed={active}
+                    >
+                      {f.label}
+                    </button>
+                  );
+                })}
+              </nav>
+            )}
+
+            <motion.div
+              className="menu-video-frame"
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.55, ease: EASE, delay: 0.1 }}
+            >
           {currentId ? (
-            // initial={false} — 첫 영상은 슬라이드 없이 그냥 등장. 이후 전환만 슬라이드.
-            <AnimatePresence initial={false}>
-              <motion.div
-                key={`${tick}-${currentId}`}
-                className="menu-video-slide"
-                initial={{ x: "100%" }}
-                animate={{ x: 0 }}
-                exit={{ x: "-100%" }}
-                transition={{ duration: 0.55, ease: EASE }}
+            <>
+              {/* initial={false} — 첫 영상은 슬라이드 없이 그냥 등장. 이후 전환만 슬라이드. */}
+              <AnimatePresence initial={false}>
+                <motion.div
+                  key={`${tick}-${currentId}`}
+                  className="menu-video-slide"
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "-100%" }}
+                  transition={{ duration: 0.55, ease: EASE }}
+                >
+                  <VideoFrame
+                    id={currentId}
+                    useNativeLoop={single}
+                    muted={muted}
+                    onEnded={single ? undefined : goNext}
+                  />
+                </motion.div>
+              </AnimatePresence>
+              {/* 음소거 토글 — 우하단. 운영진이 한 번 클릭하면 unmute + 볼륨 100%.
+                  다음 영상으로 슬라이드되어도 unmute 상태 유지. */}
+              <button
+                type="button"
+                className="menu-video-mute-toggle"
+                onClick={() => setMuted((m) => !m)}
+                aria-label={muted ? "음소거 해제" : "음소거"}
+                aria-pressed={!muted}
+                title={muted ? "음소거 해제" : "음소거"}
               >
-                <VideoFrame
-                  id={currentId}
-                  useNativeLoop={single}
-                  onEnded={single ? undefined : goNext}
-                />
-              </motion.div>
-            </AnimatePresence>
+                {muted ? "🔇" : "🔊"}
+              </button>
+            </>
           ) : (
             <div className="menu-video-placeholder">
               <span className="menu-video-placeholder-emoji" aria-hidden>
@@ -231,9 +324,11 @@ export function MainMenu() {
               <span className="text-sm opacity-75">
                 MainMenu.tsx 의 <code>YOUTUBE_VIDEO_IDS</code> 에 ID 입력
               </span>
-            </div>
-          )}
-        </motion.div>
+              </div>
+            )}
+            </motion.div>
+          </div>
+        </div>
       </div>
     </div>
   );
