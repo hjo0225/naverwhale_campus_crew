@@ -146,18 +146,22 @@ function FinalPage() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-6 max-w-[400px] sm:max-w-[600px] mx-auto mb-4 sm:mb-10">
         <div className="text-center">
-          <div className="surface-card muted aspect-square flex items-center justify-center text-text-muted mb-2 sm:mb-3 text-xs sm:text-base p-2">
-            키캡 이미지
-            <br />
-            (추후 삽입)
+          <div className="surface-card aspect-square overflow-hidden mb-2 sm:mb-3 p-2 sm:p-3">
+            <img
+              src="/prize-keycap.png"
+              alt="키캡 경품"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div className="text-sm sm:text-base font-bold">키캡</div>
         </div>
         <div className="text-center">
-          <div className="surface-card muted aspect-square flex items-center justify-center text-text-muted mb-2 sm:mb-3 text-xs sm:text-base p-2">
-            인형 이미지
-            <br />
-            (추후 삽입)
+          <div className="surface-card aspect-square overflow-hidden mb-2 sm:mb-3 p-2 sm:p-3">
+            <img
+              src="/prize-doll.png"
+              alt="인형 경품"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div className="text-sm sm:text-base font-bold">인형</div>
         </div>

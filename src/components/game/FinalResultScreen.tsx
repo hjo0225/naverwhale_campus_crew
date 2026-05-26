@@ -37,10 +37,11 @@ export function FinalResultScreen() {
 
   const place = summary?.place ?? null;
 
-  // 결과 BGM — 1등이면 승리 음악, 그 외엔 위로 음악. 언마운트 시 정지.
+  // 결과 BGM — 1등이면 승리 음악, 그 외엔 위로 음악. 딱 한 번만 재생(루프 X).
+  // 언마운트("한 판 더"/"처음으로") 시 정지.
   useEffect(() => {
     if (place == null) return;
-    playBgm(place === 1 ? "resultWin" : "resultOther");
+    playBgm(place === 1 ? "resultWin" : "resultOther", { loop: false });
     return () => {
       stopBgm();
     };
@@ -49,7 +50,6 @@ export function FinalResultScreen() {
   if (!state || !summary) return null;
   const { title, prizeText } = headlineFor(summary.place, summary.totalPlayers);
   const isWin = summary.prize === "both";
-  const isLoser = summary.prize === "cheer";
   const history = state.roundHistory ?? [];
   const last = history[history.length - 1];
   const sortedScores = last
@@ -137,28 +137,6 @@ export function FinalResultScreen() {
           </div>
         ))}
       </div>
-
-      {isLoser && (
-        <div className="surface-card brand max-w-[520px] mx-auto mb-8 px-6 py-6 flex items-center gap-5">
-          <div className="w-28 h-28 bg-white rounded-2xl shrink-0 overflow-hidden flex items-center justify-center">
-            <img
-              src="/qr.png?v=1"
-              alt="재도전 QR 코드"
-              className="w-full h-full object-contain p-1.5"
-            />
-          </div>
-          <div className="text-left">
-            <div className="text-sm font-bold tracking-[0.08em] mb-1 opacity-90">
-              한 번 더 기회!
-            </div>
-            <p className="text-base leading-relaxed">
-              QR 찍고 추천인 인증하면
-              <br />
-              현장에서 <strong>재도전</strong>할 수 있어요
-            </p>
-          </div>
-        </div>
-      )}
 
       <div className="flex gap-3 justify-center">
         <button

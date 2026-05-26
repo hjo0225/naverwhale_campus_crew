@@ -2,10 +2,10 @@ import type { Card, CardValue, CharKey, Player } from "./types";
 
 /**
  * 매칭 규칙:
- *  - 같은 숫자
+ *  - 같은 숫자/라마 (값 일치 — 라마 위에 라마도 가능)
  *  - +1 (숫자끼리만)
  *  - 5 위에는 라마
- *  - 라마 위에는 1
+ *  - 라마 위에는 1 (라마는 위 "값 일치" 규칙으로도 가능)
  */
 export function canPlay(card: Card, top: Card | null): boolean {
   if (!top) return true;
@@ -62,8 +62,13 @@ export function deriveEndReason(players: readonly Player[]): EndReason | null {
   return null;
 }
 
+/** 이름 끝이 이미 '님'이면 추가 호칭을 붙이지 않는다 — "손님님이..." 같은 이중 호칭 방지. */
+function honorific(name: string): string {
+  return name.endsWith("님") ? name : `${name}님`;
+}
+
 export function describeEndReason(r: EndReason): { emoji: string; line: string } {
-  if (r.type === "out") return { emoji: "🏁", line: `${r.name}님이 카드를 다 냈습니다.` };
+  if (r.type === "out") return { emoji: "🏁", line: `${honorific(r.name)}이 카드를 다 냈습니다.` };
   if (r.type === "all-quit") return { emoji: "✋", line: "모두 그만했어요" };
   return { emoji: "🚫", line: `${r.name} 낼 카드 없음` };
 }

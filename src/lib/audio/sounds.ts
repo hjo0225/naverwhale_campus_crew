@@ -69,31 +69,32 @@ function getSfxInstance(key: SfxKey): HTMLAudioElement | null {
 export function playSfx(key: SfxKey): void {
   const a = getSfxInstance(key);
   if (!a) return;
-  try {
-    a.currentTime = 0;
-    void a.play();
-  } catch {
-    // autoplay block — 부스 환경에선 첫 클릭 이후 풀림.
-  }
+  a.currentTime = 0;
+  // autoplay 차단 / 풀 재사용으로 인한 play() 중단(AbortError)은 무해 — 조용히 무시.
+  void a.play().catch(() => {});
 }
 
-export function playBgm(key: BgmKey): void {
+/**
+ * BGM 재생. 기본은 루프(게임 BGM). 결과 화면처럼 한 번만 재생하려면
+ * `{ loop: false }`. loop=false면 끝까지 재생 후 자연 정지한다.
+ */
+export function playBgm(key: BgmKey, opts?: { loop?: boolean }): void {
   if (!isClient()) return;
+  const loop = opts?.loop ?? true;
   if (currentBgm?.key === key) {
+    currentBgm.el.loop = loop;
     void currentBgm.el.play().catch(() => {});
     return;
   }
   stopBgm();
   const el = new Audio(BGM_SRC[key]);
-  el.loop = true;
+  el.loop = loop;
   el.volume = BGM_VOLUME;
   el.preload = "auto";
   currentBgm = { key, el };
-  try {
-    void el.play();
-  } catch {
-    // ignore — 사용자 상호작용 후 다시 시도됨
-  }
+  // play()는 Promise. 재생 시작 전에 stopBgm()(=pause)이 끼어들면 AbortError로
+  // reject되는데, 이는 의도된 정지이므로 조용히 삼킨다. autoplay 차단도 동일.
+  void el.play().catch(() => {});
 }
 
 export function stopBgm(): void {

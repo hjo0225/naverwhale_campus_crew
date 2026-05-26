@@ -70,7 +70,7 @@ export function Rule02Page() {
       </div>
 
       <p className="text-(--color-text-secondary) mt-8">
-        <strong>5 위에는 캐릭6(라마)</strong>, <strong>캐릭6 위에는 1</strong>만 가능
+        <strong>5 위에는 캐릭6(라마)</strong>, <strong>캐릭6 위에는 캐릭6(라마) 또는 1</strong>만 가능
       </p>
     </div>
   );

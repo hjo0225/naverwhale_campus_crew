@@ -18,10 +18,10 @@ export function PvpResultScreen() {
         last.scores.length
       : null;
 
-  // 결과 BGM — 1등이면 승리, 그 외엔 위로 음악.
+  // 결과 BGM — 1등이면 승리, 그 외엔 위로 음악. 딱 한 번만 재생(루프 X).
   useEffect(() => {
     if (myPlaceForBgm == null) return;
-    playBgm(myPlaceForBgm === 1 ? "resultWin" : "resultOther");
+    playBgm(myPlaceForBgm === 1 ? "resultWin" : "resultOther", { loop: false });
     return () => {
       stopBgm();
     };

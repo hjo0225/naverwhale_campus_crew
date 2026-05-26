@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Card, CardBack } from "@/components/game/Card";
+import { TurnBanner } from "@/components/game/TurnBanner";
 import { canPlay } from "@/lib/game/rules";
 import { canPlayerDraw, canPlayerQuit, isMyTurn } from "@/lib/pvp/engine";
 import type { RoomPlayer, RoomState } from "@/lib/pvp/schema";
@@ -87,6 +88,29 @@ export function PvpBoard() {
     <div className="game-shell">
       <div className="game-area">
         <div className="game-table-wrap">
+          {/* 안내 오버레이 — 본인은 "내 차례예요!"(3s), 다른 플레이어는
+              "잠시만 기다려주세요.. {닉네임}님 차례예요"(2s). 이름이 이미 '님'으로
+              끝나면 추가 호칭 생략(이중 호칭 방지). */}
+          {(() => {
+            const cur = state.players[state.currentTurn];
+            const isAnyoneTurn = state.phase === "playing" && !!cur && !cur.quitted;
+            const named = cur
+              ? cur.name.endsWith("님")
+                ? cur.name
+                : `${cur.name}님`
+              : "";
+            const bannerTitle = myTurn
+              ? "내 차례예요!"
+              : `잠시만 기다려주세요.. ${named} 차례예요`;
+            return (
+              <TurnBanner
+                active={isAnyoneTurn}
+                title={bannerTitle}
+                durationMs={myTurn ? 3000 : 2000}
+                isMine={myTurn}
+              />
+            );
+          })()}
           <div className="game-table">
             {/* 가운데 — 덱 + 바닥 */}
             <div

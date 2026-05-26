@@ -4,8 +4,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useGameStore, isPlayerFirstTurn } from "@/lib/store/gameStore";
 import { canPlay } from "@/lib/game/rules";
 import { CHAR_IMAGES } from "@/lib/game/data";
+import { TUTORIAL_SCRIPT, type TutorialCardId } from "@/lib/game/tutorial";
 import type { GameState, Player } from "@/lib/game/types";
 import { Card, CardBack } from "./Card";
+import { TurnBanner } from "./TurnBanner";
+import { TutorialOverlay } from "./TutorialOverlay";
 import { cn } from "@/lib/utils";
 
 // ===== 헬퍼 =====
@@ -63,6 +66,7 @@ const DECK_FROM_NPC_SIDE = { x: 0, y: 380 } as const;
 
 export function GameBoard() {
   const state = useGameStore((s) => s.state);
+  const tutorial = useGameStore((s) => s.tutorial);
   const playerPlayCard = useGameStore((s) => s.playerPlayCard);
   const playerDraw = useGameStore((s) => s.playerDraw);
   const playerQuit = useGameStore((s) => s.playerQuit);
@@ -79,9 +83,31 @@ export function GameBoard() {
   const firstTurn = isPlayerFirstTurn(state);
   const hasPlayable = isPlayerTurn && player.hand.some((c) => canPlay(c, state.top));
   const deckEmpty = state.deck.length === 0;
+
+  // ===== 튜토리얼 활성 시 손님 액션 제약 =====
+  // - 현재 스크립트 스텝이 손님 + play 인 경우: 지정한 카드 id 만 클릭 가능, 나머지는 dim.
+  // - 다른 액션(draw/quit)는 스크립트가 명시한 경우에만 허용. 본 스크립트는 모두 play.
+  const tutStep =
+    tutorial && state.phase === "playing"
+      ? TUTORIAL_SCRIPT[tutorial.stepIndex]
+      : null;
+  const tutPlayerCardId: TutorialCardId | null =
+    tutStep && tutStep.actor === "player" && tutStep.action.type === "play"
+      ? tutStep.action.cardId
+      : null;
+  const tutAllowDraw =
+    !!tutStep && tutStep.actor === "player" && tutStep.action.type === "draw";
+  const tutAllowQuit =
+    !!tutStep && tutStep.actor === "player" && tutStep.action.type === "quit";
+
   const drawDisabled =
-    !isPlayerTurn || isSoloActive || (firstTurn && hasPlayable) || deckEmpty;
-  const quitDisabled = !isPlayerTurn || firstTurn;
+    !isPlayerTurn ||
+    isSoloActive ||
+    (firstTurn && hasPlayable) ||
+    deckEmpty ||
+    (tutorial !== null && !tutAllowDraw);
+  const quitDisabled =
+    !isPlayerTurn || firstTurn || (tutorial !== null && !tutAllowQuit);
 
   const drawLabel = isSoloActive
     ? "뽑기 불가"
@@ -94,6 +120,25 @@ export function GameBoard() {
     <div className="game-shell">
       <div className="game-area">
         <div className="game-table-wrap">
+          {/* 안내 오버레이들 — 보드 안에 두어 좌우/세로 좌표를 보드 기준으로 정렬.
+              튜토리얼 중엔 TurnBanner 숨김 (TutorialOverlay 팁/NPC 힌트가 같은 역할 + 상세). */}
+          {(() => {
+            const cur = state.players[state.currentTurn];
+            const isAnyoneTurn =
+              state.phase === "playing" && !!cur && !cur.quitted && !tutorial;
+            const bannerTitle = cur?.isPlayer
+              ? "손님 차례예요!"
+              : `잠시만 기다려주세요.. ${cur?.name ?? ""}님 차례예요`;
+            return (
+              <TurnBanner
+                active={isAnyoneTurn}
+                title={bannerTitle}
+                durationMs={cur?.isPlayer ? 3000 : 2000}
+                isMine={!!cur?.isPlayer}
+              />
+            );
+          })()}
+          <TutorialOverlay />
           <div className="game-table">
             {/* 가운데 — 덱 + 바닥 */}
             <div
@@ -165,6 +210,8 @@ export function GameBoard() {
               quitLabel={quitLabel}
               onDraw={playerDraw}
               onQuit={playerQuit}
+              tutHighlightDraw={tutAllowDraw}
+              tutHighlightQuit={tutAllowQuit}
             />
 
             {/* 손님 핸드 — 테두리 가까이. 그만하기 시 카드 페이드 + ✋ 이모지로 대체 */}
@@ -192,7 +239,14 @@ export function GameBoard() {
                   </motion.div>
                 ) : (
                   player.hand.map((card, idx) => {
-                    const playable = isPlayerTurn && canPlay(card, state.top);
+                    const matchesRule = canPlay(card, state.top);
+                    // 튜토리얼: 지정 카드만 playable, 나머지는 dim/disabled.
+                    const tutorialBlocks =
+                      tutPlayerCardId !== null && card.id !== tutPlayerCardId;
+                    const playable =
+                      isPlayerTurn && matchesRule && !tutorialBlocks;
+                    const isTutTarget =
+                      tutPlayerCardId !== null && card.id === tutPlayerCardId;
                     const rot = fanRotate(idx, player.hand.length);
                     return (
                       <motion.div
@@ -223,7 +277,10 @@ export function GameBoard() {
                           times: [...DEAL_TIMES],
                           ease: EASE,
                         }}
-                        className="fan-wrap player"
+                        className={cn(
+                          "fan-wrap player",
+                          isTutTarget && "tutorial-target",
+                        )}
                         style={{
                           marginLeft: idx === 0 ? 0 : "-2.4rem",
                           zIndex: idx,
@@ -234,6 +291,7 @@ export function GameBoard() {
                           size="large"
                           playable={playable}
                           disabled={isPlayerTurn && !playable}
+                          faded={tutorialBlocks}
                           onClick={() => playerPlayCard(idx)}
                         />
                       </motion.div>
@@ -265,6 +323,8 @@ function ActionBar({
   quitLabel,
   onDraw,
   onQuit,
+  tutHighlightDraw,
+  tutHighlightQuit,
 }: {
   isSoloActive: boolean;
   drawDisabled: boolean;
@@ -273,12 +333,17 @@ function ActionBar({
   quitLabel: string;
   onDraw: () => void;
   onQuit: () => void;
+  tutHighlightDraw: boolean;
+  tutHighlightQuit: boolean;
 }) {
   return (
     <>
       <button
         type="button"
-        className="cta-btn cta-btn-danger absolute bottom-4 left-4 z-20"
+        className={cn(
+          "cta-btn cta-btn-danger absolute bottom-4 left-4 z-20",
+          tutHighlightQuit && "tutorial-target",
+        )}
         disabled={quitDisabled}
         onClick={onQuit}
       >
@@ -286,7 +351,10 @@ function ActionBar({
       </button>
       <button
         type="button"
-        className="cta-btn cta-btn-primary absolute bottom-4 right-4 z-20"
+        className={cn(
+          "cta-btn cta-btn-primary absolute bottom-4 right-4 z-20",
+          tutHighlightDraw && "tutorial-target",
+        )}
         disabled={drawDisabled}
         onClick={onDraw}
       >

@@ -3,9 +3,10 @@
 import { create } from "zustand";
 import { CONFIG, TOTAL_ROUNDS } from "@/lib/game/data";
 import { createDeck, shuffle } from "@/lib/game/deck";
-import { decideNpcMove } from "@/lib/game/npcAi";
+import { decideNpcMove, type NpcDecision } from "@/lib/game/npcAi";
 import { canPlay, calculateScore } from "@/lib/game/rules";
 import { assignPlaces, summarize } from "@/lib/game/scoring";
+import { buildTutorialDeal, TUTORIAL_SCRIPT } from "@/lib/game/tutorial";
 import { playSfx } from "@/lib/audio/sounds";
 import type {
   Card,
@@ -15,6 +16,15 @@ import type {
   RoundHistoryEntry,
 } from "@/lib/game/types";
 
+/**
+ * 튜토리얼 진행 상태 — 스크립트 인덱스만 들고 있고, 실제 스크립트 내용은
+ * `TUTORIAL_SCRIPT[stepIndex]` 로 조회. stepIndex 가 스크립트 길이를 넘으면
+ * 자동으로 null 로 바뀌고 자유 플레이로 전환된다.
+ */
+export interface TutorialState {
+  stepIndex: number;
+}
+
 export interface GameStore {
   state: GameState | null;
   toast: string | null;
@@ -22,8 +32,14 @@ export interface GameStore {
   summary: PlayerSummary | null;
   /** 랜딩 슬라이드쇼 자동 전환 여부. 기본=false(수동/휠). 운영진이 "1" 누르면 true. */
   landingAutoMode: boolean;
+  /** 튜토리얼 진행 상태. null = 자유 플레이. */
+  tutorial: TutorialState | null;
 
   startGame: () => void;
+  /** 결정적 셋업 + 스크립트로 부팅. 스크립트 끝나면 자동으로 자유 플레이로 전환. */
+  startTutorialGame: () => void;
+  /** 튜토리얼 도중 건너뛰기 — 현재 상태 유지 채로 tutorial 만 null. */
+  skipTutorial: () => void;
   playerPlayCard: (handIdx: number) => void;
   playerDraw: () => void;
   playerQuit: () => void;
@@ -195,7 +211,34 @@ export const useGameStore = create<GameStore>((set, get) => {
       return;
     }
 
-    const decision = decideNpcMove(npc, s);
+    // 튜토리얼 활성 + 이 NPC 가 스크립트 차례면 결정을 AI 대신 스크립트로 대체.
+    // NPC 인덱스 매핑: state.players[1]=NPC0, [2]=NPC1, [3]=NPC2 → npcIdx = idx - 1.
+    const tut = get().tutorial;
+    let decision: NpcDecision | null = null;
+    let usedScript = false;
+    if (tut) {
+      const step = TUTORIAL_SCRIPT[tut.stepIndex];
+      if (step && step.actor === "npc" && step.npcIdx === idx - 1) {
+        // step.action 을 지역 변수로 빼야 화살표 콜백 안에서도 TS 좁히기가 유지됨.
+        const action = step.action;
+        if (action.type === "play") {
+          const targetId = action.cardId;
+          const handIdx = npc.hand.findIndex((c) => c.id === targetId);
+          const card = handIdx >= 0 ? npc.hand[handIdx] : undefined;
+          if (card) {
+            decision = { type: "play", handIdx, card };
+            usedScript = true;
+          }
+        } else if (action.type === "draw") {
+          decision = { type: "draw" };
+          usedScript = true;
+        } else if (action.type === "quit") {
+          decision = { type: "quit" };
+          usedScript = true;
+        }
+      }
+    }
+    if (!decision) decision = decideNpcMove(npc, s);
     if (!decision) {
       endRound();
       return;
@@ -210,6 +253,7 @@ export const useGameStore = create<GameStore>((set, get) => {
       const next: GameState = { ...s, players: newPlayers, top: decision.card };
       set({ state: next });
       playSfx(decision.card.id === "L" ? "llama" : "cardPlay");
+      if (usedScript) advanceTutorialStep();
       if (target.hand.length === 0) {
         endRound();
         return;
@@ -225,6 +269,7 @@ export const useGameStore = create<GameStore>((set, get) => {
       target.lastAction = { type: "draw" };
       set({ state: { ...s, players: newPlayers, deck: newDeck } });
       playSfx("cardDraw");
+      if (usedScript) advanceTutorialStep();
       advanceTurn();
       return;
     }
@@ -233,7 +278,23 @@ export const useGameStore = create<GameStore>((set, get) => {
     target.lastAction = { type: "quit" };
     set({ state: { ...s, players: newPlayers } });
     playSfx("quit");
+    if (usedScript) advanceTutorialStep();
     advanceTurn();
+  }
+
+  /**
+   * 튜토리얼 스텝 1단계 진행 — 해당 스텝의 액션이 끝난 직후 호출.
+   * 마지막 스텝이면 tutorial=null 로 만들어 자유 플레이로 자연 전환.
+   */
+  function advanceTutorialStep() {
+    const tut = get().tutorial;
+    if (!tut) return;
+    const nextIdx = tut.stepIndex + 1;
+    if (nextIdx >= TUTORIAL_SCRIPT.length) {
+      set({ tutorial: null });
+    } else {
+      set({ tutorial: { stepIndex: nextIdx } });
+    }
   }
 
   return {
@@ -241,6 +302,7 @@ export const useGameStore = create<GameStore>((set, get) => {
     toast: null,
     summary: null,
     landingAutoMode: false,
+    tutorial: null,
 
     startGame: () => {
       clearNpcTimer();
@@ -260,8 +322,49 @@ export const useGameStore = create<GameStore>((set, get) => {
         totalScores,
         roundHistory: [],
       };
-      set({ state: dealNewRound(base), summary: null });
+      set({ state: dealNewRound(base), summary: null, tutorial: null });
       playSfx("shuffle");
+    },
+
+    startTutorialGame: () => {
+      clearNpcTimer();
+      const basePlayers = buildPlayers();
+      const totalScores: Record<string, number> = {};
+      basePlayers.forEach((p) => {
+        totalScores[p.name] = 0;
+      });
+      // 결정적 분배 — tutorial.ts 가 손패/덱/top 을 정해진 대로 만들어 줌.
+      const deal = buildTutorialDeal();
+      const players: Player[] = basePlayers.map((p, i) => ({
+        ...p,
+        hand: deal.hands[i] ?? [],
+        quitted: false,
+        lastAction: null,
+      }));
+      const state: GameState = {
+        players,
+        deck: deal.deck,
+        top: deal.top,
+        currentTurn: 0, // 첫 스텝은 손님.
+        phase: "playing",
+        round: 1,
+        totalRounds: TOTAL_ROUNDS,
+        totalScores,
+        roundHistory: [],
+      };
+      set({
+        state,
+        summary: null,
+        tutorial: { stepIndex: 0 },
+      });
+      playSfx("shuffle");
+    },
+
+    skipTutorial: () => {
+      // 현재 게임 상태는 그대로 두고 가이드만 해제. NPC AI 와 손님 자유 선택이 곧장 재개.
+      set({ tutorial: null });
+      const s = get().state;
+      if (s?.phase === "playing") scheduleNpcTurn();
     },
 
     playerPlayCard: (handIdx) => {
@@ -272,12 +375,22 @@ export const useGameStore = create<GameStore>((set, get) => {
       const card = player.hand[handIdx];
       if (!card || !canPlay(card, s.top)) return;
 
+      // 튜토리얼 활성: 스크립트가 손님 차례 + play 일 때만, 그것도 지정한 카드만 허용.
+      const tut = get().tutorial;
+      if (tut) {
+        const step = TUTORIAL_SCRIPT[tut.stepIndex];
+        if (!step || step.actor !== "player") return;
+        if (step.action.type !== "play") return;
+        if (step.action.cardId !== card.id) return;
+      }
+
       const newPlayers = s.players.map((p, i) => (i === 0 ? { ...p, hand: [...p.hand] } : p));
       const me = newPlayers[0]!;
       me.hand.splice(handIdx, 1);
       me.lastAction = { type: "play", card };
       set({ state: { ...s, players: newPlayers, top: card } });
       playSfx(card.id === "L" ? "llama" : "cardPlay");
+      if (tut) advanceTutorialStep();
       if (me.hand.length === 0) {
         endRound();
         return;
@@ -288,6 +401,15 @@ export const useGameStore = create<GameStore>((set, get) => {
     playerDraw: () => {
       const s = get().state;
       if (!s || s.phase !== "playing" || s.currentTurn !== 0) return;
+
+      // 튜토리얼 활성: 현 스텝이 손님 + draw 일 때만 허용.
+      const tut = get().tutorial;
+      if (tut) {
+        const step = TUTORIAL_SCRIPT[tut.stepIndex];
+        if (!step || step.actor !== "player") return;
+        if (step.action.type !== "draw") return;
+      }
+
       const activeCount = s.players.filter((p) => !p.quitted).length;
       if (activeCount === 1) return;
       if (s.deck.length === 0) {
@@ -304,6 +426,7 @@ export const useGameStore = create<GameStore>((set, get) => {
       me.lastAction = { type: "draw" };
       set({ state: { ...s, players: newPlayers, deck: newDeck } });
       playSfx("cardDraw");
+      if (tut) advanceTutorialStep();
       advanceTurn();
     },
 
@@ -312,11 +435,21 @@ export const useGameStore = create<GameStore>((set, get) => {
       if (!s || s.phase !== "playing" || s.currentTurn !== 0) return;
       // 첫 턴 강제 — 손님이 첫 턴에 그만하기 못 함 (부스 우호 룰).
       if (isPlayerFirstTurn(s)) return;
+
+      // 튜토리얼 활성: 현 스텝이 손님 + quit 일 때만 허용.
+      const tut = get().tutorial;
+      if (tut) {
+        const step = TUTORIAL_SCRIPT[tut.stepIndex];
+        if (!step || step.actor !== "player") return;
+        if (step.action.type !== "quit") return;
+      }
+
       const newPlayers = s.players.map((p, i) =>
         i === 0 ? { ...p, quitted: true, lastAction: { type: "quit" as const } } : p
       );
       set({ state: { ...s, players: newPlayers } });
       playSfx("quit");
+      if (tut) advanceTutorialStep();
       advanceTurn();
     },
 
@@ -325,7 +458,7 @@ export const useGameStore = create<GameStore>((set, get) => {
 
     reset: () => {
       clearNpcTimer();
-      set({ state: null, summary: null });
+      set({ state: null, summary: null, tutorial: null });
     },
 
     showToast: (msg) => {

@@ -1,5 +1,5 @@
-import { Slideshow } from "@/components/landing/Slideshow";
+import { MainMenu } from "@/components/landing/MainMenu";
 
 export default function LandingPage() {
-  return <Slideshow />;
+  return <MainMenu />;
 }

@@ -95,8 +95,8 @@ function CompactRule02() {
       </div>
 
       <p className="text-sm text-text-secondary mt-5">
-        <strong>5 위에는 캐릭6(라마)</strong>, <strong>캐릭6 위에는 1</strong>만
-        가능
+        <strong>5 위에는 캐릭6(라마)</strong>,{" "}
+        <strong>캐릭6 위에는 캐릭6(라마) 또는 1</strong>만 가능
       </p>
     </div>
   );
