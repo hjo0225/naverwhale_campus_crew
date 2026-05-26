@@ -18,37 +18,39 @@ export function ConditionsSelectScreen() {
           참여하시나요?
         </h1>
         <p className="text-base sm:text-lg text-(--color-text-secondary) max-w-[520px] mx-auto mb-10">
-          이용 중인 기기에 맞는 안내를 골라주세요.
+          이용 중인 환경에 맞는 안내를 골라주세요.
         </p>
 
         <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
           <Link
-            href="/conditions/mobile/"
-            className="surface-card flex flex-col items-center justify-center gap-3 px-6 py-10 transition-transform hover:-translate-y-1"
-          >
-            <span className="text-5xl" aria-hidden>
-              📱
-            </span>
-            <span className="text-xl sm:text-2xl font-extrabold">
-              모바일 안내
-            </span>
-            <span className="text-sm text-(--color-text-secondary)">
-              스마트폰 웨일 앱으로 참여
-            </span>
-          </Link>
-
-          <Link
             href="/conditions/pc/"
-            className="surface-card flex flex-col items-center justify-center gap-3 px-6 py-10 transition-transform hover:-translate-y-1"
+            className="surface-card flex flex-col items-center justify-center gap-4 px-6 py-10 transition-transform hover:-translate-y-1"
           >
+            {/* 조건 강조 — 카드 맨 위. 브랜드 컬러 좌측 바 (▎) + 연한 브랜드 배경 = PC 가 우선 선택지 */}
+            <span className="self-stretch text-sm sm:text-base font-bold text-(--color-brand-deep) bg-(--color-brand-soft) border-l-4 border-(--color-brand) py-2.5 px-3.5 rounded-r-md text-left">
+              PC가 있는 경우
+            </span>
             <span className="text-5xl" aria-hidden>
               💻
             </span>
             <span className="text-xl sm:text-2xl font-extrabold">
               PC 안내
             </span>
-            <span className="text-sm text-(--color-text-secondary)">
-              데스크톱 웨일 브라우저로 참여
+          </Link>
+
+          <Link
+            href="/conditions/mobile/"
+            className="surface-card flex flex-col items-center justify-center gap-4 px-6 py-10 transition-transform hover:-translate-y-1"
+          >
+            {/* 조건 강조 — 카드 맨 위. 중성 회색 좌측 바 = 모바일은 PC 없을 때만 보는 fallback */}
+            <span className="self-stretch text-sm sm:text-base font-bold text-(--color-text-secondary) bg-(--color-board-soft) border-l-4 border-(--color-text-muted) py-2.5 px-3.5 rounded-r-md text-left">
+              PC가 없는 경우
+            </span>
+            <span className="text-5xl" aria-hidden>
+              📱
+            </span>
+            <span className="text-xl sm:text-2xl font-extrabold">
+              모바일 안내
             </span>
           </Link>
         </div>

@@ -65,9 +65,10 @@ const STEP1_SUBS: readonly Step1Sub[] = [
 ];
 
 function Step1SubPage({ s }: { s: Step1Sub }) {
+  // 흐름 순서상으론 두 번째 단계(앱에서 추천인 코드 메뉴 찾기). 변수명은 의미상 유지.
   return (
     <div className="text-center max-w-[440px] mx-auto flex flex-col items-center">
-      <span className="eyebrow mb-2">STEP 01 · {s.num}</span>
+      <span className="eyebrow mb-2">STEP 02 · {s.num}</span>
       <h2 className="display-h2 mt-2 mb-3">{s.title}</h2>
       <p className="text-base sm:text-lg text-(--color-text-secondary) mb-5">
         {s.desc}
@@ -84,9 +85,10 @@ function Step1SubPage({ s }: { s: Step1Sub }) {
 }
 
 function Step2Page({ onCopy }: { onCopy: () => void }) {
+  // 흐름 순서상으론 첫 단계(코드 복사 → 그 다음 앱에서 입력). 변수명은 의미상 유지.
   return (
     <div className="text-center max-w-[760px] mx-auto">
-      <span className="eyebrow mb-5">STEP 02</span>
+      <span className="eyebrow mb-5">STEP 01</span>
       <h2 className="display-h2 mt-4 mb-6">추천인 등록</h2>
       <p className="text-lg text-(--color-text-secondary) max-w-[540px] mx-auto mb-10">
         아래 코드를 복사해서 웨일 앱에 입력하고, 인증 완료 화면을 캡처해 주세요.
@@ -231,8 +233,11 @@ export function ConditionsScreen() {
   const pages = useMemo(
     () => [
       <IntroPage key="intro" />,
-      ...STEP1_SUBS.map((s, i) => <Step1SubPage key={`step1-${i}`} s={s} />),
+      // STEP 01 — 추천인 코드 복사
       <Step2Page key="step2" onCopy={copyCode} />,
+      // STEP 02 — 웨일 앱에서 코드 입력 메뉴까지 진입 (3 substeps)
+      ...STEP1_SUBS.map((s, i) => <Step1SubPage key={`step1-${i}`} s={s} />),
+      // STEP 03 — 부스 인증
       <Step3Page key="step3" />,
     ],
     // copyCode는 store selector + 클로저라 매 렌더 새 ref. showToast는 안정적이므로 deps 비움.
