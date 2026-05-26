@@ -49,10 +49,20 @@ jobs:
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
         run: pnpm build
 
+      # FirebaseExtended/action-hosting-deploy 도 codeload SHA 서빙 이슈가 나서
+      # firebase-tools CLI 를 직접 호출. 동일한 동작 — 서비스 계정으로 인증 +
+      # firebase.json 의 hosting 설정대로 out/ 을 배포.
+      - name: Write Firebase service account
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/firebase"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase/sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase/sa.json" >> $GITHUB_ENV
+
       - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          channelId: live
-          projectId: naver-whale-campus-crew
+        run: |
+          pnpm dlx firebase-tools deploy \
+            --only hosting \
+            --project naver-whale-campus-crew \
+            --non-interactive
