@@ -2103,4 +2103,50 @@
   .pvp-action-bar .cta-btn {
     min-width: 10rem;
   }
+
+  /* ============================================================
+     모바일 전체화면 토글 버튼 (FullscreenButton)
+     ============================================================
+     - 좌하단 floating. iOS safe-area 고려.
+     - 전체화면 진입 시 컴포넌트가 unmount (JS) — CSS 는 평소 상태만 정의.
+     - 부스 PC(데스크톱) 에서는 노출하지 않음 — 운영진이 F11 사용. */
+  .fs-toggle-btn {
+    position: fixed;
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+    left: max(0.75rem, env(safe-area-inset-left));
+    z-index: 100;
+    display: none;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    transition:
+      background 0.15s ease,
+      transform 0.15s ease;
+  }
+  .fs-toggle-btn:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 1);
+  }
+  .fs-toggle-btn-icon {
+    font-size: 1rem;
+    line-height: 1;
+  }
+  /* 모바일/터치 디바이스에서만 노출 */
+  @media (max-width: 768px), (pointer: coarse) {
+    .fs-toggle-btn {
+      display: inline-flex;
+    }
+  }
 }

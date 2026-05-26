@@ -241,9 +241,6 @@ export function MainMenu() {
           <Link href="/game/pvp/" className="menu-nav-btn primary">
             PvP 대전 ▶
           </Link>
-          <Link href="/rules/" className="menu-nav-btn ghost">
-            게임 방법
-          </Link>
           <Link href="/conditions/" className="menu-nav-btn ghost">
             참가 방법
           </Link>
