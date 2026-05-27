@@ -19,20 +19,11 @@ import { useEffect, useState } from "react";
  * iOS 16.4 미만 Safari 처럼 Fullscreen API 자체가 없으면 '홈 화면에 추가' 안내.
  */
 
-type FsDoc = Document & {
-  webkitFullscreenElement?: Element | null;
-};
 type FsElement = HTMLElement & {
   webkitRequestFullscreen?: () => Promise<void> | void;
 };
 
 const INTENT_KEY = "fs-intent";
-
-function getFsElement(): Element | null {
-  if (typeof document === "undefined") return null;
-  const d = document as FsDoc;
-  return document.fullscreenElement ?? d.webkitFullscreenElement ?? null;
-}
 
 function isFullscreenSupported(): boolean {
   if (typeof document === "undefined") return false;
@@ -87,11 +78,16 @@ export function FullscreenButton() {
   // 화면 전환 후 자동 재진입.
   // 어떤 click/touch 든 user gesture 이므로 fullscreen 정책 통과.
   // capture phase 로 일찍 잡아 Link/Button 핸들러보다 먼저 fullscreen 큐잉.
+  //
+  // 현재 fullscreen 상태에서도 무조건 큐잉해야 한다 — bubble phase 의 router.push /
+  // <Link> 가 history.pushState 를 일으키면 iOS Safari 가 fullscreen 을 해제하는데,
+  // 그 시점엔 이미 user activation 이 만료돼 다음 탭까지 회복 불가. 같은 gesture
+  // 안에서 미리 큐잉해두면 해제 직후 자동 재진입.
+  // (requestFullscreen 은 이미 fullscreen 이면 spec 상 no-op 으로 즉시 resolve.)
   useEffect(() => {
     if (typeof window === "undefined") return;
     function onAnyPointer() {
       if (!getIntent()) return;
-      if (getFsElement()) return;
       if (!isFullscreenSupported()) return;
       void requestFs();
     }
