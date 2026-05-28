@@ -41,8 +41,6 @@ interface Step1Sub {
   title: string;
   desc: string;
   img: string;
-  /** true면 페이지 하단에 추천인 코드 + 복사 버튼 박스를 함께 렌더. (3단계 전용) */
-  showCodeCopy?: boolean;
 }
 
 const STEP1_SUBS: readonly Step1Sub[] = [
@@ -60,66 +58,52 @@ const STEP1_SUBS: readonly Step1Sub[] = [
   },
   {
     num: "3단계",
-    title: "추천인 코드 입력",
-    desc: "메뉴를 누르면 코드 입력 화면이 나와요.\n아래 코드를 복사해서 붙여 넣으세요.",
+    title: "추천인 코드 선택",
+    desc: "설정 화면 상단의 추천인 코드 메뉴를 눌러주세요.",
     img: "/referral-3.png",
-    showCodeCopy: true,
   },
 ];
 
-function Step1SubPage({
-  s,
-  onCopy,
-}: {
-  s: Step1Sub;
-  /** 3단계 코드 복사 버튼 핸들러. showCodeCopy=true 인 단계에만 필요. */
-  onCopy?: () => void;
-}) {
-  // 흐름 순서상으론 두 번째 단계(앱에서 추천인 코드 메뉴 찾기 → 코드 입력). 변수명은 의미상 유지.
+function Step1SubPage({ s }: { s: Step1Sub }) {
+  // 흐름 순서상 첫 단계(앱에서 추천인 코드 메뉴까지 진입). 변수명은 의미상 유지.
   return (
     <div className="text-center max-w-[440px] mx-auto flex flex-col items-center">
-      <span className="eyebrow mb-2">STEP 02 · {s.num}</span>
+      <span className="eyebrow mb-2">STEP 01 · {s.num}</span>
       <h2 className="display-h2 mt-2 mb-3">{s.title}</h2>
-      <p className="text-base sm:text-lg text-(--color-text-secondary) mb-5 leading-relaxed whitespace-pre-line">
+      <p className="text-base sm:text-lg text-(--color-text-secondary) mb-5 leading-relaxed">
         {s.desc}
       </p>
-      {/* 공유 폭 래퍼 — 이미지와 코드 박스가 같은 폭을 갖도록 한 컬럼에 묶음.
-          폭은 이미지 9:16 비율 기준 적당한 크기로 clamp. */}
-      <div className="flex flex-col items-center w-[clamp(220px,60vw,280px)] max-w-full">
-        <div className="w-full aspect-[9/16] max-h-[55dvh] rounded-lg overflow-hidden bg-white border border-(--color-divider) shadow-(--shadow-soft)">
-          <img
-            src={s.img}
-            alt={s.title}
-            className="w-full h-full object-contain"
-          />
-        </div>
-
-        {/* 3단계 — 이미지와 같은 폭의 추천인 코드 + 복사 버튼 박스 */}
-        {s.showCodeCopy && onCopy && (
-          <div className="surface-card brand flex items-center justify-between gap-3 w-full mt-5 px-4 py-3">
-            <span className="font-mono text-xl sm:text-2xl font-bold tracking-[0.15em]">
-              {REFERRAL_CODE}
-            </span>
-            <button className="cta-btn cta-btn-primary" onClick={onCopy}>
-              복사
-            </button>
-          </div>
-        )}
+      <div className="aspect-[9/16] max-h-[68dvh] rounded-lg overflow-hidden bg-white border border-(--color-divider) shadow-(--shadow-soft)">
+        <img
+          src={s.img}
+          alt={s.title}
+          className="w-full h-full object-contain"
+        />
       </div>
     </div>
   );
 }
 
-function Step2Page() {
-  // STEP 01 — 앱 다운로드. (변수명은 옛 위치(2단계)에서 유지, 라벨/내용만 갱신.)
+function Step2Page({ onCopy }: { onCopy: () => void }) {
+  // STEP 02 — 코드 복사 + 앱 다운로드 합본. 메뉴 진입 단계 다음, 부스 인증 직전 마지막 액션.
   return (
     <div className="text-center max-w-[760px] mx-auto">
-      <span className="eyebrow mb-5">STEP 01</span>
-      <h2 className="display-h2 mt-4 mb-6">앱 다운로드</h2>
-      <p className="text-lg text-(--color-text-secondary) max-w-[540px] mx-auto mb-10 leading-relaxed">
-        네이버 웨일 앱을 먼저 설치해 주세요.
-        <br />
-        이미 설치돼 있다면 다음 단계로 넘어가도 돼요.
+      <span className="eyebrow mb-5">STEP 02</span>
+      <h2 className="display-h2 mt-4 mb-6">추천인 등록</h2>
+      <p className="text-lg text-(--color-text-secondary) max-w-[540px] mx-auto mb-10">
+        아래 코드를 복사해서 웨일 앱에 입력하고, 인증 완료 화면을 캡처해 주세요.
+      </p>
+
+      <div className="surface-card brand flex items-center justify-between gap-4 max-w-[500px] mx-auto mb-2">
+        <span className="font-mono text-2xl sm:text-3xl font-bold tracking-[0.15em]">
+          {REFERRAL_CODE}
+        </span>
+        <button className="cta-btn cta-btn-primary" onClick={onCopy}>
+          복사
+        </button>
+      </div>
+      <p className="text-sm text-(--color-text-muted) mb-8">
+        복사 버튼을 누르면 클립보드에 저장됩니다
       </p>
 
       <div className="flex gap-2 max-w-[500px] mx-auto">
@@ -249,17 +233,10 @@ export function ConditionsScreen() {
   const pages = useMemo(
     () => [
       <IntroPage key="intro" />,
-      // STEP 01 — 앱 다운로드 (Google Play / App Store)
-      <Step2Page key="step2" />,
-      // STEP 02 — 웨일 앱에서 추천인 코드 입력까지 (3 substeps).
-      // 3단계(코드 입력 화면) 페이지 하단에 코드 복사 박스 함께 노출.
-      ...STEP1_SUBS.map((s, i) => (
-        <Step1SubPage
-          key={`step1-${i}`}
-          s={s}
-          onCopy={s.showCodeCopy ? copyCode : undefined}
-        />
-      )),
+      // STEP 01 — 웨일 앱에서 추천인 코드 메뉴까지 진입 (3 substeps)
+      ...STEP1_SUBS.map((s, i) => <Step1SubPage key={`step1-${i}`} s={s} />),
+      // STEP 02 — 추천인 코드 복사 + 앱 다운로드 (합본)
+      <Step2Page key="step2" onCopy={copyCode} />,
       // STEP 03 — 부스 인증
       <Step3Page key="step3" />,
     ],
