@@ -31,6 +31,12 @@ function isFullscreenSupported(): boolean {
   return !!(el.requestFullscreen || el.webkitRequestFullscreen);
 }
 
+function isFullscreenActive(): boolean {
+  if (typeof document === "undefined") return false;
+  const d = document as Document & { webkitFullscreenElement?: Element | null };
+  return !!(d.fullscreenElement || d.webkitFullscreenElement);
+}
+
 async function requestFs(): Promise<boolean> {
   const el = document.documentElement as FsElement;
   try {
@@ -96,6 +102,27 @@ export function FullscreenButton() {
     return () => {
       document.removeEventListener("click", onAnyPointer, true);
       document.removeEventListener("touchend", onAnyPointer, true);
+    };
+  }, []);
+
+  // 핵심: <Link>/router.push 같은 SPA 네비게이션은 iOS 가 fullscreen 을 강제 해제하는데,
+  // capture 클릭 단계의 재요청은 "아직 fullscreen" 이라 no-op 이라 해제를 못 막는다.
+  // 그래서 '해제된 순간'(fullscreenchange)을 직접 잡아 즉시 재진입한다 — 직전 클릭의
+  // transient activation(~5s)이 살아 있어 화면 전환 직후 자동 복구된다.
+  // (부스 의도: intent 설정 후엔 어떤 동작으로도 풀스크린이 풀리지 않게 유지.)
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    function onFsChange() {
+      if (!getIntent()) return;
+      if (isFullscreenActive()) return; // 다시 fullscreen 이면 할 일 없음(루프 방지)
+      if (!isFullscreenSupported()) return;
+      void requestFs();
+    }
+    document.addEventListener("fullscreenchange", onFsChange);
+    document.addEventListener("webkitfullscreenchange", onFsChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFsChange);
+      document.removeEventListener("webkitfullscreenchange", onFsChange);
     };
   }, []);
 
