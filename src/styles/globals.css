@@ -1951,6 +1951,12 @@
     .fullpage-page {
       padding: 1.5rem 1rem;
     }
+    /* 모바일에서 콘텐츠가 화면 비율을 벗어나는 문제 — 기본 15% 축소.
+       --fullpage-mobile-scale 한 줄만 바꾸면 축소율 조정 가능 (1 = 원본). */
+    .fullpage-inner {
+      transform: scale(var(--fullpage-mobile-scale, 0.85));
+      transform-origin: center center;
+    }
   }
 
   /* ========== 게임판 wrapper + HandChip 외부 레이어 ========== */
