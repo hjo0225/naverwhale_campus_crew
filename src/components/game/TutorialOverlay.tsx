@@ -61,7 +61,9 @@ export function TutorialOverlay() {
               <strong className="tutorial-tip-title">{step.tip.title}</strong>
               <p className="tutorial-tip-body">{step.tip.body}</p>
               <span className="tutorial-tip-hint">
-                ✨ 강조된 곳을 눌러 진행하세요
+                {step.action.type === "free"
+                  ? "✨ 원하는 행동을 골라보세요"
+                  : "✨ 강조된 곳을 눌러 진행하세요"}
               </span>
             </motion.div>
           ) : (

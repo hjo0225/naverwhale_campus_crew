@@ -85,20 +85,25 @@ export function GameBoard() {
   const deckEmpty = state.deck.length === 0;
 
   // ===== 튜토리얼 활성 시 손님 액션 제약 =====
-  // - 현재 스크립트 스텝이 손님 + play 인 경우: 지정한 카드 id 만 클릭 가능, 나머지는 dim.
-  // - 다른 액션(draw/quit)는 스크립트가 명시한 경우에만 허용. 본 스크립트는 모두 play.
+  // - play 스텝: 지정한 카드 id 만 클릭 가능, 나머지는 dim.
+  // - draw/quit 스텝: 해당 버튼만 허용.
+  // - free 스텝(그만하기 안내): 뽑기·그만하기 모두 허용(강제 X). highlight 만 강조.
   const tutStep =
     tutorial && state.phase === "playing"
       ? TUTORIAL_SCRIPT[tutorial.stepIndex]
       : null;
+  const isPlayerTutStep = !!tutStep && tutStep.actor === "player";
+  const tutAction = isPlayerTutStep ? tutStep.action : null;
+  const tutFree = tutAction?.type === "free";
+  const tutFreeHighlight = tutAction?.type === "free" ? tutAction.highlight : undefined;
   const tutPlayerCardId: TutorialCardId | null =
-    tutStep && tutStep.actor === "player" && tutStep.action.type === "play"
-      ? tutStep.action.cardId
-      : null;
-  const tutAllowDraw =
-    !!tutStep && tutStep.actor === "player" && tutStep.action.type === "draw";
-  const tutAllowQuit =
-    !!tutStep && tutStep.actor === "player" && tutStep.action.type === "quit";
+    tutAction?.type === "play" ? tutAction.cardId : null;
+  // 허용 여부 — free 면 둘 다 가능.
+  const tutAllowDraw = tutAction?.type === "draw" || tutFree;
+  const tutAllowQuit = tutAction?.type === "quit" || tutFree;
+  // 강조 여부 — free 면 highlight 가 가리키는 버튼만 강조(누름은 강제 아님).
+  const tutHighlightDraw = tutAction?.type === "draw" || tutFreeHighlight === "draw";
+  const tutHighlightQuit = tutAction?.type === "quit" || tutFreeHighlight === "quit";
 
   const drawDisabled =
     !isPlayerTurn ||
@@ -256,8 +261,8 @@ export function GameBoard() {
               quitLabel={quitLabel}
               onDraw={playerDraw}
               onQuit={playerQuit}
-              tutHighlightDraw={tutAllowDraw}
-              tutHighlightQuit={tutAllowQuit}
+              tutHighlightDraw={tutHighlightDraw}
+              tutHighlightQuit={tutHighlightQuit}
             />
 
             {/* 손님 핸드 — 가장자리쪽으로 1cm 내림 (4.5cm → 3.5cm) */}

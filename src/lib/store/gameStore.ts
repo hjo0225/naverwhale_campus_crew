@@ -178,6 +178,7 @@ export const useGameStore = create<GameStore>((set, get) => {
         roundHistory: nextHistory,
       },
       summary: summarize(nextHistory),
+      tutorial: null, // 라운드 종료 시 잔여 튜토리얼 상태 정리(엔드게임이 튜토리얼 도중 끝날 수 있음).
     });
     playSfx("roundEnd");
   }
@@ -375,13 +376,16 @@ export const useGameStore = create<GameStore>((set, get) => {
       const card = player.hand[handIdx];
       if (!card || !canPlay(card, s.top)) return;
 
-      // 튜토리얼 활성: 스크립트가 손님 차례 + play 일 때만, 그것도 지정한 카드만 허용.
+      // 튜토리얼 활성: 손님 차례 + (play 면 지정 카드만 / free 면 아무 카드나) 허용.
       const tut = get().tutorial;
       if (tut) {
         const step = TUTORIAL_SCRIPT[tut.stepIndex];
         if (!step || step.actor !== "player") return;
-        if (step.action.type !== "play") return;
-        if (step.action.cardId !== card.id) return;
+        if (step.action.type === "play") {
+          if (step.action.cardId !== card.id) return;
+        } else if (step.action.type !== "free") {
+          return;
+        }
       }
 
       const newPlayers = s.players.map((p, i) => (i === 0 ? { ...p, hand: [...p.hand] } : p));
@@ -402,12 +406,12 @@ export const useGameStore = create<GameStore>((set, get) => {
       const s = get().state;
       if (!s || s.phase !== "playing" || s.currentTurn !== 0) return;
 
-      // 튜토리얼 활성: 현 스텝이 손님 + draw 일 때만 허용.
+      // 튜토리얼 활성: 현 스텝이 손님 + (draw | free) 일 때만 허용.
       const tut = get().tutorial;
       if (tut) {
         const step = TUTORIAL_SCRIPT[tut.stepIndex];
         if (!step || step.actor !== "player") return;
-        if (step.action.type !== "draw") return;
+        if (step.action.type !== "draw" && step.action.type !== "free") return;
       }
 
       const activeCount = s.players.filter((p) => !p.quitted).length;
@@ -436,12 +440,12 @@ export const useGameStore = create<GameStore>((set, get) => {
       // 첫 턴 강제 — 손님이 첫 턴에 그만하기 못 함 (부스 우호 룰).
       if (isPlayerFirstTurn(s)) return;
 
-      // 튜토리얼 활성: 현 스텝이 손님 + quit 일 때만 허용.
+      // 튜토리얼 활성: 현 스텝이 손님 + (quit | free) 일 때만 허용.
       const tut = get().tutorial;
       if (tut) {
         const step = TUTORIAL_SCRIPT[tut.stepIndex];
         if (!step || step.actor !== "player") return;
-        if (step.action.type !== "quit") return;
+        if (step.action.type !== "quit" && step.action.type !== "free") return;
       }
 
       const newPlayers = s.players.map((p, i) =>
